@@ -50,7 +50,7 @@ repository = "https://github.com/nolar/kmock"
 documentation = "https://kmock.readthedocs.io"
 
 [project.entry-points.pytest11]
-kmock = "kmock.pytest"
+kmock = "kmock._internal.pytest"
 
 [dependency-groups]
 docs = [
@@ -61,9 +61,10 @@ docs = [
 ]
 test = [
     "aresponses",
+    "looptime",
     "freezegun",
     "lxml",
-    "coverage",
+    "coverage>=7.12.0",
     "pytest>=9.0",
     "pytest-aiohttp",
     "pytest-asyncio",
@@ -74,7 +75,7 @@ lint = [
     {include-group = "test"},
     "isort",
     "import-linter",
-    "mypy == 1.19.0",
+    "mypy==1.19.0",
     "pre-commit",
 ]
 
