@@ -1,0 +1,71 @@
+name: Bug Report
+description: File a bug report
+labels: [bug, triage]
+body:
+
+  - type: markdown
+    attributes:
+      value: >
+        Please provide as much information as possible.
+        All fields are optional, but a lack of information
+        may result in a delayed response and time-consuming iterations.
+
+  - type: markdown
+    attributes:
+      value: >
+        _If you feel confident with English, please use English.
+        If not, feel free to use your native or preferred language
+        (avoid metaphors and idioms — they do not auto-translate well).
+        The answers will be in English._
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Long story short
+      description: >
+        Please describe your problem in 1-3 sentences.
+        What has happened? What has not happened, but should have?
+      placeholder: >
+        A feature X behaves "this" way, but expected to behave "that" way.
+        The misbehaviour leads to unexpected results or side-effects A, B, C.
+
+  - type: input
+    id: kmock-version
+    attributes:
+      label: Kmock version
+      placeholder: e.g. 1.0.0
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: e.g. 3.10 or pypy-3.10-7.3.13
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code
+      description: >
+        The code snippet of the tests to reproduce the issue.
+        (No backticks — the code will be formatted automatically.)
+      placeholder: |
+        # For example:
+        def test_me(kmock):
+            kmock['/'] << b'hello'
+      render: python
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >
+        The output that highlights the failure of Kmock
+        and shows what happened immediately before and after.
+        (No backticks — the logs will be formatted automatically.)
+      render: none
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional information
+      description: >
+        Everything you would like to add that can help to identify the issue.

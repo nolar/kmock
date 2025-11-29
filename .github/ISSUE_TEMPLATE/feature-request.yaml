@@ -1,0 +1,52 @@
+name: Feature Request
+description: Suggest an idea for this project
+labels: [enhancement, triage]
+body:
+
+  - type: markdown
+    attributes:
+      value: >
+        Please provide as much information as possible.
+        All fields are optional, but a lack of information
+        may result in a delayed response and time-consumung iterations.
+
+  - type: markdown
+    attributes:
+      value: >
+        _If you feel confident with English, please use English.
+        If not, feel free to use your native or preferred language
+        (avoid metaphors and idioms — they do not auto-translate well).
+        The answers will be in English._
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: >
+        What problem do you currently face so that you want this feature?
+        Are there existing features or tools close to solving this problem?
+        Why don't they work?
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: >
+        Describe the solution you would like to have.
+        Are there any other ways of achieving the same goal?
+        Why is this proposal better than those alternatives?
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code
+      description: >
+        A code snippet showing the new feature in action, at least as an idea.
+        (No backticks — the code will be formatted automatically.)
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional information
+      description: >
+        Additional information in free form — everything you would like to add.
