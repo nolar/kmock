@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm>=8.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kmock"
+description = "HTTP/API/Kubernetes Mock Server"
+keywords = ["kubernetes", "k8s", "api", "server", "mock", "testing", "python", "pytest", "unittest"]
+authors = [{name = "Sergey Vasilyev", email = "nolar@nolar.info"}]
+maintainers = [{name = "Sergey Vasilyev", email = "nolar@nolar.info"}]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Framework :: AsyncIO",
+    "Framework :: Pytest",
+    "Framework :: aiohttp",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Testing :: Mocking",
+    "Topic :: Software Development :: Testing :: Unit",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "attrs",
+    "yarl",
+    "aiohttp>=3.9.0b0",
+    "typing_extensions>=4.4.0",
+]
+dynamic = ["version"]  # taken from git tags
+
+[project.urls]
+homepage = "https://github.com/nolar/kmock"
+repository = "https://github.com/nolar/kmock"
+documentation = "https://kmock.readthedocs.io"
+
+[project.entry-points.pytest11]
+kmock = "kmock.pytest"
+
+[dependency-groups]
+docs = [
+    "sphinx>=2.0.0",
+    "sphinx-autobuild",
+    "sphinx-autodoc-typehints",
+    "sphinx_rtd_theme>=0.5",
+]
+dev = [
+    "aresponses",
+    "freezegun",
+    "import-linter",
+    "isort",
+    "lxml",
+    "mypy == 1.18.2",
+    "pre-commit",
+    "coverage",
+    "pytest>=9.0",
+    "pytest-aiohttp",
+    "pytest-asyncio",
+    "pytest-mock",
+    "pytest-timeout",
+]
+
+[tool.setuptools_scm]
+version_file = "kmock/_version.py"
+
+[tool.mypy]
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest]
+minversion = "9.0"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = ["--strict-markers"]
+
+[tool.isort]
+line_length = 120
+multi_line_output = 11
+balanced_wrapping = true
+combine_as_imports = true
+case_sensitive = true
+known_first_party = ["kmock"]
+
+[tool.coverage.report]
+exclude_also = [
+    "@overload",
+    "@(abc\\.)?abstractmethod",
+]
