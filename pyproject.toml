@@ -59,20 +59,23 @@ docs = [
     "sphinx-autodoc-typehints",
     "sphinx_rtd_theme>=0.5",
 ]
-dev = [
+test = [
     "aresponses",
     "freezegun",
-    "import-linter",
-    "isort",
     "lxml",
-    "mypy == 1.18.2",
-    "pre-commit",
     "coverage",
     "pytest>=9.0",
     "pytest-aiohttp",
     "pytest-asyncio",
     "pytest-mock",
     "pytest-timeout",
+]
+lint = [
+    {include-group = "test"},
+    "isort",
+    "import-linter",
+    "mypy == 1.19.0",
+    "pre-commit",
 ]
 
 [tool.setuptools_scm]
