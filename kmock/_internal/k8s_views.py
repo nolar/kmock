@@ -1,10 +1,10 @@
 import collections.abc
-from collections.abc import Collection, Iterable, Iterator, Mapping, MutableMapping
-from typing import Any, TypeGuard, cast, overload
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
+from typing import Any, TypeGuard, overload
 
 import attrs
 
-from kmock import k8s_dicts, resources
+from kmock._internal import k8s_dicts, resources
 
 ArrayKey = tuple[resources.resource, str | None, str]  # pre-parsed ObjectKey
 ObjectKey = tuple[str | resources.resource, str | None, str]

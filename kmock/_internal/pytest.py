@@ -1,10 +1,10 @@
-from typing import Any, AsyncIterator, Iterator
+from typing import Any, AsyncIterator
 
 import attrs
 import pytest
 import pytest_asyncio
 
-from kmock import apps, k8s
+from kmock._internal import apps, k8s
 
 # By default, use the most feature-full class, both mock- & tcp/http-wise.
 DEFAULT_CLS: type[apps.RawHandler] = k8s.KubernetesEmulator

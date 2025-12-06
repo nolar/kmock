@@ -1,5 +1,5 @@
 import enum
-from typing import cast, overload
+from typing import overload
 
 from typing_extensions import Self
 

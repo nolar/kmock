@@ -1,7 +1,7 @@
 # TODO: restore namespace globs?
 # import re
 #
-# from kmock.resources import select_specific_namespaces
+# from kmock._internal.resources import select_specific_namespaces
 #
 #
 # def test_empty_pattern_list() -> None:

@@ -50,7 +50,7 @@ repository = "https://github.com/nolar/kmock"
 documentation = "https://kmock.readthedocs.io"
 
 [project.entry-points.pytest11]
-kmock = "kmock.pytest"
+kmock = "kmock._internal.pytest"
 
 [dependency-groups]
 docs = [

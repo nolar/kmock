@@ -1,6 +1,6 @@
 import pytest
 
-from kmock.k8s_dicts import patch_dict
+from kmock._internal.k8s_dicts import patch_dict
 
 # NB: This is an internal (non-published) routine, but we still test it
 # to make sure the patching logic works perfectly nice wherever it is used.

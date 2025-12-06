@@ -3,7 +3,7 @@
 # as long as it provides realistic matches of objects & patterns.
 # It is usually used with only a few hard-coded patterns anyway.
 # The tests are here as a smoke detector, "just in case".
-from kmock.k8s_views import _match_objects_to_patterns
+from kmock._internal.k8s_views import _match_objects_to_patterns
 
 
 def test_empty_input():

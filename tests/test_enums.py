@@ -1,6 +1,7 @@
 import pytest
 
-from kmock import action, enums, method
+from kmock import action, method
+from kmock._internal import enums
 
 
 @pytest.fixture(autouse=True)

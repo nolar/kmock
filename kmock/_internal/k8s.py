@@ -5,13 +5,13 @@ import json
 import re
 import sys
 import traceback
-from typing import Any, AsyncGenerator, AsyncIterator, Iterable, Iterator
+from typing import Any, AsyncIterator
 
 import aiohttp.web
 import attrs
 from typing_extensions import override
 
-from kmock import aiobus, apps, dsl, enums, filtering, k8s_dicts, k8s_views, rendering, resources
+from kmock._internal import aiobus, apps, dsl, enums, filtering, k8s_dicts, k8s_views, rendering, resources
 
 
 @attrs.frozen

@@ -11,7 +11,7 @@ import aiohttp.web
 import attrs
 from typing_extensions import Self, override
 
-from kmock import aiobus, filtering, rendering
+from kmock._internal import aiobus, filtering, rendering
 
 _V = TypeVar('_V', bound="View")
 

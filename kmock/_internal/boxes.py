@@ -13,11 +13,11 @@ But for uniformity, we still generate the shortcut containers first.
 import collections.abc
 import re
 import urllib.parse
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from typing import Any, Generic, Iterator, TypeVar, overload
 
 import attrs
-from typing_extensions import Self, override
+from typing_extensions import override
 
 # An extra type for criteria. Use as [None] for strict containers (despite already defined),
 # or as [re.Pattern[str | bytes]] for criteria in addition to strict str/bytes.

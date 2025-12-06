@@ -1,6 +1,5 @@
 import re
-from collections.abc import Collection
-from typing import ForwardRef, Protocol, Union, runtime_checkable
+from typing import Protocol, Union, runtime_checkable
 
 import attrs
 

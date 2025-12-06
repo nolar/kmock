@@ -18,7 +18,7 @@ import attrs
 import yarl
 from typing_extensions import Self
 
-from kmock import aiobus, boxes, enums, parsing, resources
+from kmock._internal import aiobus, boxes, enums, parsing, resources
 
 # Multi-type content for responses, with a heuristic to serve each type differently.
 # Each item can be the whole response or a step of a streaming response.
@@ -593,7 +593,7 @@ class Response:
         return tuple(flat_batch)
 
     async def _effect(self, request: Request, sink: Sink) -> None:
-        from kmock import dsl  # otherwise causes circular imports
+        from kmock._internal import dsl  # otherwise causes circular imports
 
         result: Sink
         match sink:

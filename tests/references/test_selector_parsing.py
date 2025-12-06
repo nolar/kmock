@@ -1,6 +1,6 @@
 import pytest
 
-from kmock.resources import resource
+from kmock._internal.resources import resource
 
 
 def test_kwargs() -> None:

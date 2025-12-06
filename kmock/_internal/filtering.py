@@ -14,7 +14,7 @@ import aiohttp.web
 import attrs
 from typing_extensions import Self
 
-from kmock import boxes, enums, parsing, rendering, resources
+from kmock._internal import boxes, enums, parsing, rendering, resources
 
 T = TypeVar('T')
 V = TypeVar('V')

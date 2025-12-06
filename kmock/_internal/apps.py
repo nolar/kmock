@@ -14,7 +14,7 @@ import attrs
 import yarl
 from typing_extensions import Self
 
-from kmock import boxes, dns, dsl, enums, filtering, rendering, resources
+from kmock._internal import boxes, dns, dsl, enums, filtering, rendering, resources
 
 
 # We mirror the client methods of aiohttp on the server object of kmock.

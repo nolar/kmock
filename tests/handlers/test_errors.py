@@ -5,7 +5,8 @@ import aiohttp.web
 import pytest
 from typing_extensions import override
 
-from kmock import KMockError, RawHandler, Server, rendering
+from kmock import KMockError, RawHandler, Server
+from kmock._internal import rendering
 
 
 class FailingHandler(RawHandler):

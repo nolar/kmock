@@ -2,8 +2,8 @@ from collections.abc import Collection
 
 import pytest
 
-import kmock.pytest
-from kmock import RawHandler
+# import kmock.pytest
+# from kmock import RawHandler
 
 # def pytest_collection_modifyitems(config: pytest.Config, items: Collection[pytest.Item]) -> None:
 #     # The simplest raw mock is enough for OUR tests, unless the tests specifically require more.
@@ -20,10 +20,10 @@ from kmock import RawHandler
 #     for item in session.items:
 #         item.add_marker(mark, append=True)
 
-def pytest_sessionstart(session: pytest.Session) -> None:
-    # The simplest raw mock is enough for OUR tests, unless the tests specifically require more.
-    # (Unlike with the end users, to whom we offer the most enhanced functionality out of the box.)
-    kmock.pytest.DEFAULT_CLS = RawHandler
+# def pytest_sessionstart(session: pytest.Session) -> None:
+#     # The simplest raw mock is enough for OUR tests, unless the tests specifically require more.
+#     # (Unlike with the end users, to whom we offer the most enhanced functionality out of the box.)
+#     kmock.pytest.DEFAULT_CLS = RawHandler
 
 # TODO:
 #   - k8s specifics:

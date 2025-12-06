@@ -5,7 +5,7 @@ from typing import Any
 import attrs
 from typing_extensions import Self
 
-from kmock import enums, resources
+from kmock._internal import enums, resources
 
 
 @attrs.frozen
