@@ -145,27 +145,6 @@ The default is the most functionally advanced server — :class:`kmock.Kubernete
 Other keyword parameters of the mark are passed to the server's or handler's constructors as is — see below.
 
 
-Configuration
-=============
-
-The folowing parameters can be used in the pytest marks or directly with handlers/servers (given with their defaults or types):
-
-- ``cls: type[kmock.RawHandler] = kmock.KubernetesEmulator`` is the handler class to use, a descendant of :class:`kmock.RawHandler`.
-
-- Server parameters:
-
-  - ``host: str = '127.0.0.1'`` — a local IPv4/IPv6 address to listen for connections.
-  - ``port: int | None = None`` — the port for listening. ``None`` means auto-select the next free port. The real port can be taken from ``kmock.port`` or ``kmock.url``.
-  - ``client_fct: Callable[[yarl.URL], aiohttp.ClientSession]`` — a factory for aiohttp-based clients. By default a simple non-configured :class:`aiohttp.ClientSession` is created.
-  - ``hostnames = None`` — a collection of DNS hostname, IPv4/IPv6 addresses, or hosts-ports to intercept and forward into the handler. For the details on supported formats, see :class:`kmock.AiohttpInterceptor`.
-  - ``user_agent: str`` — a user-agent to send with the embedded client. By default, it is the current version of KMock and aiohttp.
-
-- Handler parameters:
-
-  - ``limit: int | None = None`` — restrict the number of requests served by the server in general, regardless of individual responses. This can be helpful if there is a risk of running into infinite requesting cycle — with such a limit, it will stop sooner or later. ``None`` means unlimited ("no limit").
-  - ``strict: bool = False`` — whether to raise the exceptions; by default, they are collected in ``kmock.errors`` for future assertions and not escalated further from the handler.
-
-
 Embedded client
 ===============
 

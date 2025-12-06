@@ -96,3 +96,47 @@ Mind that the object should always be the "greater" operand, the pattern as the 
 Nested sub-dicts are also matched partially, recursively — either by selecting them by the key, or by adding them into the pattern.
 
 Beware: accessing objects and sub-dicts always returns a dict-like wrapper instead of the originally stored dict. This includes iterating over object's fields, and converting them to ``dict()`` directly. To unwrap, use ``.raw``: e.g. ``obj.raw`` or ``obj['metadata'].raw``.
+
+
+Spies
+=====
+
+The results of ``<<`` or ``>>`` operations of type :class:`kmock.Reaction` can be preserved into variables and later used in assertions — a typical "spy" or a "checkpoint" pattern.
+
+Note that every such filter instance keeps its own list of requests served, so a repeated filtering on the same criteria will return a new instance with no requests in its log. You should preserve the original filter or reaction to collect & see the requests.
+
+Spies can be preserved either as simple filters, or as responses with ``None`` as the payload (read as "no payload").
+
+.. code-block:: python
+
+    async def test_spies_with_no_payload():
+        # Get the spies with no payloads attached — either notation works.
+        getter = kmock['get']
+        poster = kmock['post'] << None
+
+        # Define some fallback payloads.
+        kmock['get /'] << b'root'
+        kmock['/path'] << b'path'
+
+        # Make a few requests.
+        await kmock.get('/')
+        await kmock.get('/path')
+        await kmock.post('/path')
+
+        # Check if the spies have seen the matching requests.
+        assert len(list(kmock)) == 3
+        assert len(list(getter)) == 2
+        assert len(list(poster)) == 1
+
+To make a spy which responds with an empty body and stops matching the following filters, explicitly mention ``b""`` as the content.
+
+.. code-block:: python
+
+    async def test_spies_with_payloads():
+        get1 = kmock['get'] << b''
+        get2 = kmock['get /'] << b''  # this will never be matched
+
+        await kmock.get('/')
+
+        assert len(list(get1)) == 1
+        assert len(list(get2)) == 0

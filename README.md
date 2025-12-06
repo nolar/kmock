@@ -6,7 +6,11 @@
 
 — It's me, a long awaited Kubernetes API mock server!
 
-The rationale behind the library itself is simple: monkey-patching is bad. It makes you test the specific implementation of your HTTP/API client, not the overall communication contract. Realistic servers are an acceptable compromise. The trade-off is only the overhead for the localhost network traffic & HTTP/JSON protocol rendering & parsing. The obvious flaw: you can make mistakes in assumptions what is the supposed response of the remote system.
+The main practical purpose is testing Kubernetes operators developed with Kopf, operators migrated to or from Kopf (whether Pythonic or not), and for testing Kopf itself. Kopf is a framework to write Kubernetes operators in Python: https://github.com/nolar/kopf
+
+Developers can use KMock to test any arbitrary HTTP APIs, SDKs, or apps — even without Kubernetes nuances (simply ignore the Kubernetes functionality).
+
+The rationale behind the library design is simple: monkey-patching is bad. It makes you test the specific implementation of your HTTP/API client, not the overall communication contract. Realistic servers are an acceptable compromise. Unlike with realistic servers, which require heavy deployment, KMock works out of the box, and the only trade-off is the overhead for the localhost network traffic & HTTP/JSON rendering & parsing. The obvious flaw: you can make mistakes in your assumptions of what is the supposed response of the server.
 
 The rationale behind the library's DSL is simple too: tests must be brief. Brief tests require brief setup & brief assertions. Extensive logic, such as for-cycles, if-conditions, temporary variables, talking with external classes, so on — all this verbosity distracts from the test purpose, leading to fewer tests being written in total.
 
@@ -25,7 +29,6 @@ The rationale behind the library's DSL is simple too: tests must be brief. Brief
 * Packaged with setuptools — old but gold.
 * Mostly hand-made by organic humans: no code formatters, not much AI.
 * Thoughtless AI code & tests for some auxiliary low-level algorithms.
-* Contributions are not welcome (but you can try).
 
 
 ## Explanation by examples
