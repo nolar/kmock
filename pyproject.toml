@@ -58,6 +58,12 @@ docs = [
     "sphinx-autobuild",
     "sphinx-autodoc-typehints",
     "sphinx_rtd_theme>=0.5",
+    # TODO: switch to sphinx-llm for better autodoc coverage. But it currently does not work at all:
+    #   https://github.com/jacobtomlinson/sphinx-llm/issues/27
+    #   https://github.com/jacobtomlinson/sphinx-llm/issues/34
+    #  sphinx-llms-txt's author suggests adding the source code and exposing all the private parts.
+    #"sphinx-llm",
+    "sphinx-llms-txt",
 ]
 test = [
     "aresponses",

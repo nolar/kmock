@@ -20,6 +20,7 @@ KMock runs well with looptime_, the time dilation/contraction library for asynci
    responses
    streams
    assertions
+   kubernetes
    ideas
    scope
    linters
