@@ -13,7 +13,7 @@ It is inspired by `aresponses <https://github.com/aresponses/aresponses>`_ by `B
 Terminology
 ===========
 
-There are several testing patterns aka "test doubles" involved in testing: dummies, stubs, spies, mocks, and fakes. While these terminology can be questioned and explaining the whole domain is not the purpose of this documentation, it is worth noting that KMock implements most of them at different levels:
+There are several testing patterns aka "test doubles" involved in testing: dummies, stubs, spies, mocks, and fakes. While this terminology can be questioned and explaining the whole domain is not the purpose of this documentation, it is worth noting that KMock implements most of the "test doubles" patterns at different levels:
 
 * KMock implements the typical structure of the Kubernetes API, thus allowing running the Kubernetes-aiming routines & tools against itself when you need minimally sufficient Kubernetes-like *something* instead of a real heavy-weight Kubernetes cluster — i.e. behaving as a **dummy**.
 * KMock responds to the system-under-test with fake responses either provided by users explicitly, or implemented by itself implicitly — i.e. behaving like a **stub**.

@@ -2,97 +2,112 @@
 Assertions
 ==========
 
-.. highlight:: python
+Requests spies
+==============
 
-Request logging
-===============
+The results of the ``<<`` or ``>>`` operations of type :class:`kmock.Reaction` can be preserved into variables and later used in assertions — a typical "spy" or a "checkpoint" pattern.
 
-All incoming requests, including their parsed interpretations, are recorded for further assertions in tests and can be accessed either via the mock handler itself or via individual rules (i.e. ``kmock`` or ``kmock << …``).
+Note that every such filter instance keeps its own list of requests served, so a repeated filtering on the same criteria will return a new instance with no requests in its log. You should preserve the original filter or reaction to collect & see the requests.
 
-The handler and the rules are iterables of requests that have been served by these rules; for the root handler, that ever arrived. This can be used in assertions::
+Spies can be preserved either as simple filters, or as responses with ``None`` as the payload (read as "no payload").
 
-    def test_me(kmock):
-        rule1 = kmock['get /'] << b'hello'
-        rule2 = kmock['post /'] << b'world'
+The root handler and the inidividual filters/reactions, among other things, are sequences of requests of type :class:`kmock.Request` that have been served by these rules; for the root handler, those that ever arrived — even if responded with HTTP 404 Not Found. This can be used in assertions:
 
-        funcion_under_test()
+.. code-block:: python
 
-        all_requests = list(kmock)
-        requests1 = list(rule1)
-        requests2 = list(rule2)
-        assert len(all_requests) == 3
-        assert requests1[0].path == '/'
-        assert requests2[-1].path == '/'
+    import kmock
 
-The requests are of type :class:`kmock.Request`.
+    async def test_requests_assertions(kmock: kmock.RawHandler) -> None:
+        # Setup the responses and preserve the spies for later assertions.
+        gets = kmock['get']  # just a filter, no response/reaction
+        posts = kmock['post'] << b'hello'  # a filter with response/reaction
 
-For convenience, the requests can be compared directly to any value that otherwise could be used in the handler filters (i.e., ``kmock[…]``). In particular, regular strings are automatically recognized as either an HTTP verb or path, or as a Kubernetes action or resource::
+        # Simulate the activity of the system-under-test.
+        await kmock.get('/info')
+        await kmock.post('/data', data={'key': 'val'})
+        await kmock.delete('/info')
 
-    def test_me(kmock):
-        rule1 = kmock['get /'] << b'hello'
-        rule2 = kmock['post /'] << b'world'
+        # Check the overall number of requests globally & filtered.
+        assert len(kmock) == 3
+        assert len(gets) == 1
+        assert len(posts) == 1
 
-        funcion_under_test()
+        # Check the 1st request globall and the 1st to the get-filter.
+        assert gets[0].path == '/info'
 
-        requests1 = list(rule1)
-        requests2 = list(rule2)
-        assert requests1[0] == 'get'
-        assert requests2[-1] == '/'
+        # Check the 2nd request globally or the 1st one to the post-filter.
+        assert posts[0].path == '/data'
+        assert posts[0].data == {'key': 'val'}
+
+        # Check the 3rd request globally (zero-based index 2).
+        assert kmock[2].method == kmock.method.DELETE
+        assert kmock[2].path == '/info'
+
+To make a spy which responds with an empty body and stops matching the following filters, explicitly mention ``b""`` as the content, so that it does not go to the following filters at all.
+
+.. code-block:: python
+
+    import kmock
+
+    async def test_spies_with_payloads(kmock: kmock.RawHandler) -> None:
+        get1 = kmock['get'] << b''    # this one will intercept all requests
+        get2 = kmock['get /'] << b''  # this will never be matched
+
+        await kmock.get('/')
+
+        assert len(get1) == 1
+        assert len(get2) == 0
 
 
-Server-side errors
-==================
+Unexpected errors
+=================
 
-To catch server-side errors, usually coming from the callbacks of the mock server itself, ``kmock.errors`` (a list of exceptions) can be asserted to be empty.
+Errors list
+-----------
 
-Alternatively, the mock server can be created with the ``strict=True`` option. In this case, the assertion will be performed on the client (test) side when closing the fixture. However, the server shutdown usually happens outside of the test, so explicit checking might be more preferable in some cases.
+To catch server-side errors usually coming from the callbacks of the mock server itself, :attr:`kmock.RawHandler.errors` (a list of exceptions) can be asserted to be empty.
 
-The ``StopIteration`` exception is not escalated, it is processed internally to deactivate the response handler as "depleted".
+.. code-block:: python
+
+    import kmock
+
+    async def test_errors_assertions(kmock: kmock.RawHandler) -> None:
+        kmock['/'] << ZeroDivisionError('boo!')
+
+        resp = await kmock.get('/')
+        assert resp.status == 500
+
+        assert len(kmock.errors) == 1
+        assert str(kmock.errors[0]) == 'boo!'
+        assert isinstance(kmock.errors[0], ZeroDivisionError)
+
+
+Strict mode
+-----------
+
+Alternatively, the mock server can be created with the :attr:`kmock.RawHandler.strict` set t ``True`` option. In this case, the assertion will be performed on the client (test) side when closing the fixture. However, the server shutdown usually happens outside of the test, so explicit checking might be more preferable in some cases.
+
+in this example, the test will fail: while the main test body will succeed as all expectations are met, the test's teardown will raise an exception ``ZeroDivisionError`` because it has happened in the request and was remembered (assume it is some unexpected error, despite simulated intentionally for the sake of the example):
+
+.. code-block:: python
+
+    import kmock
+
+    @pytest.mark.kmock(strict=True)
+    async def test_errors_assertions(kmock: kmock.RawHandler) -> None:
+        kmock['/'] << ZeroDivisionError('boo!')
+
+        resp = await kmock.get('/')
+        assert resp.status == 500
+
+.. note::
+
+    The :class:`StopIteration` exception is not escalated, it is processed internally to deactivate the response handler as "depleted".
 
 
 Kubernetes objects
 ==================
 
-:class:`KubernetesEmulator` —the in-memory stateful database of objects— exposes the property ``.objects`` to either pre-populate the server's database or to assert it after the test.
+:class:`KubernetesEmulator` —the in-memory stateful database of objects— exposes the property :attr:`kmock.KubernetesEmulator.objects` to either pre-populate the server's database or to assert it after the test which uses the API.
 
-Objects are accessed with a 3- or 4-item key: the resource, the namespace, the name of the object, and an optional version index (an integer or a slice).
-
-The objects are stored and fetched "as is", i.e. the server does not add or remove any implicit fields, such as the metadata, namespaces, names. These values are taken from the URL and used in the keys only. However, it uses some fields from the payload to retrieve the values of they cannot be figured from the URL — for example, the name of a newly created object.
-
-To pre-populate the server::
-
-    def test_me(kmock):
-        kmock.objects[resource, 'ns1', 'n1'] = {'spec': 'val1'}
-        kmock.objects[resource, 'ns1', 'n2'] = {'spec': 'val2'}
-        function_under_test()
-
-To assert the objects after the test::
-
-    def test_me(kmock):
-        function_under_test()
-        assert kmock.objects[resource, 'ns1', 'n1']['spec'] == 'val1'
-        assert kmock.objects[resource, 'ns1', 'n2']['spec'] == 'val2'
-
-To access the selected versions of the object as it was manipulated via the API, use either ``.history[idx]``, or the 4th item in the main key. The usual magic with negative indexes or slices works::
-
-    def test_me(kmock):
-        function_under_test()
-
-        assert kmock.objects[resource, 'ns1', 'n1', 0]['spec'] == 'val1'
-        assert kmock.objects[resource, 'ns1', 'n2'].history[-1]['spec'] == 'val2'
-
-        assert kmock.objects[resource, 'ns1', 'n1', :] == [{'spec': 'val1'}]
-        assert kmock.objects[resource, 'ns1', 'n2'].history[:] == [{'spec': 'val2'}]
-
-To avoid the dependency on very specific payloads generated by some realistic API clients, use the partial dict matching instead of the precise equality — with set-like ``<=`` and ``>=`` operations on objects::
-
-    def test_me(kmock):
-        function_under_test()
-        assert kmock.objects[resource, 'ns1', 'n1', 0] >=
-        assert {'spec': 'val2'} <= kmock.objects[resource, 'ns1', 'n2', -1]
-
-Mind that the object should always be the "greater" operand, the pattern as the "lesser" operand. Usually, the object contains more fields than required by the pattern. But all fields present in the pattern MUST match. In other words, a pattern must be a sub-dict of the object.
-
-Nested sub-dicts are also matched partially, recursively — either by selecting them by the key, or by adding them into the pattern.
-
-Beware: accessing objects and sub-dicts always returns a dict-like wrapper instead of the originally stored dict. This includes iterating over object's fields, and converting them to ``dict()`` directly. To unwrap, use ``.raw``: e.g. ``obj.raw`` or ``obj['metadata'].raw``.
+It is explained in detail in :doc:`/kubernetes/assertions` (and, to the extent needed, in :doc:`/kubernetes/persistence`).

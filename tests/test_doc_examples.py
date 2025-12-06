@@ -75,12 +75,12 @@ async def test_bizzarily_complex_k8s_simulation(kmock):
 
     await function_under_test(kmock)
 
-    assert len(list(kmock)) == 3
-    assert len(list(gets)) == 2
-    assert len(list(lists)) == 1
-    assert len(list(watches)) == 1
-    assert list(watches)[0].params == {'watch': 'true'}
-    assert list(watches)[0].headers['X-MyLib-Version'] == '1.2.3'
+    assert len(kmock) == 3
+    assert len(gets) == 2
+    assert len(lists) == 1
+    assert len(watches) == 1
+    assert watches[0].params == {'watch': 'true'}
+    assert watches[0].headers['X-MyLib-Version'] == '1.2.3'
 
 
 async def function_under_test(kmock: kmock.RawHandler) -> None:

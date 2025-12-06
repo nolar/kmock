@@ -195,10 +195,10 @@ class StreamingError(Exception):
 @attrs.frozen(kw_only=True, eq=False)
 class Request:
     """
-    An incoming request with pre-parsed Kubernetes-specific intentions.
+    An incoming request with pre-parsed HTTP- & Kubernetes-specific intentions.
 
     The request can be compared/asserted against a wide range of simpler types
-    if they are understod by `Criteria`, so as against `Criteria` itself::
+    if they are understood by :class:`kmock.Criteria` and descendants::
 
         assert kmock.gets[0] == b'{}'  # bytes are request bodies
         assert kmock.gets[0] == {'status': {}}  # dicts do partial nested json matching

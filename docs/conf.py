@@ -24,6 +24,7 @@ extensions = [
     'sphinx.ext.extlinks',
     'sphinx.ext.linkcode',
     'sphinx.ext.intersphinx',
+    'sphinx_llm.txt',
 ]
 
 templates_path = ['_templates']
@@ -92,8 +93,8 @@ def run_apidoc(_):
 # members of the handlers, since they are already documented as the members of the `kmock` module.
 # (Classes are more precise due to their source module; type aliases/generics are excluded blindly.)
 def autodoc_skip_member(app, what, name, obj, skip, options):
-    from typing import Union
     from types import GenericAlias
+    from typing import Union
 
     # Rare cases like clusterwide(…), namespace(…), etc, which return Criteria() instances.
     # Alternative: remake them to classes with the overridden __new__(), which returns K8sCriteria.

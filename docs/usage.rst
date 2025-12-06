@@ -145,29 +145,11 @@ The default is the most functionally advanced server — :class:`kmock.Kubernete
 Other keyword parameters of the mark are passed to the server's or handler's constructors as is — see below.
 
 
-Configuration
-=============
-
-The folowing parameters can be used in the pytest marks or directly with handlers/servers (given with their defaults or types):
-
-- ``cls: type[kmock.RawHandler] = kmock.KubernetesEmulator`` is the handler class to use, a descendant of :class:`kmock.RawHandler`.
-
-- Server parameters:
-
-  - ``host: str = '127.0.0.1'`` — a local IPv4/IPv6 address to listen for connections.
-  - ``port: int | None = None`` — the port for listening. ``None`` means auto-select the next free port. The real port can be taken from ``kmock.port`` or ``kmock.url``.
-  - ``client_fct: Callable[[yarl.URL], aiohttp.ClientSession]`` — a factory for aiohttp-based clients. By default a simple non-configured :class:`aiohttp.ClientSession` is created.
-  - ``hostnames = None`` — a collection of DNS hostname, IPv4/IPv6 addresses, or hosts-ports to intercept and forward into the handler. For the details on supported formats, see :class:`kmock.AiohttpInterceptor`.
-  - ``user_agent: str`` — a user-agent to send with the embedded client. By default, it is the current version of KMock and aiohttp.
-
-- Handler parameters:
-
-  - ``limit: int | None = None`` — restrict the number of requests served by the server in general, regardless of individual responses. This can be helpful if there is a risk of running into infinite requesting cycle — with such a limit, it will stop sooner or later. ``None`` means unlimited ("no limit").
-  - ``strict: bool = False`` — whether to raise the exceptions; by default, they are collected in ``kmock.errors`` for future assertions and not escalated further from the handler.
-
-
 Embedded client
 ===============
+
+Getting the server parameters
+-----------------------------
 
 The ``kmock`` fixture in pytest starts a local web server locally and creates an associated client. Specifically, the client has the base URL configured to point to the local server (including the dynamically allocated port), so that the relative URLs could be used in tests.
 
@@ -175,18 +157,13 @@ The underlying aiohttp server & client can be accessed as ``kmock.server`` & ``k
 
 .. code-block:: python
 
-    async def test_me(kmock: kmock.RawHandler) -> None:
-        kmock['/'] << 444 << b'{"key": "val"}'
+    import kmock
 
+    async def test_server_parameters(kmock: kmock.RawHandler) -> None:
         url = kmock.server.make_url('/path?q=params')
         assert str(url).startswith('http://127.0.0.1:')
         assert url.port >= 1024
         assert url.path == '/path'
-
-        resp = await kmock.get('/')
-        data = await resp.json()
-        assert resp.status == 444
-        assert data == {'key': 'val'}
 
 .. warning::
 
@@ -195,3 +172,58 @@ The underlying aiohttp server & client can be accessed as ``kmock.server`` & ``k
     In case you rely heavily on ``aiohttp`` or want to use another client/server library (or two different libraries), override the ``kmock`` fixture in the root ``conftest.py`` and assemble your own setup similar to how the provided fixture does this (see the source code). The main class is a simple callable that takes a request in and returns a response out (WSGI-style).
 
 .. _aiohttp: https://docs.aiohttp.org/en/stable/
+
+
+Performing simple requests
+--------------------------
+
+To perform simple all-at-once HTTP/API requests, use the embedded client functionality directly on the ``kmock`` fixture. It provides methods for all the well-knowm HTTP verbs —get, put, post, patch, delete, head, options— so as a generic :meth:`kmock.RawHandler.request` method.
+
+.. code-block:: python
+
+    import kmock
+
+    async def test_simple_requests(kmock: kmock.RawHandler) -> None:
+        kmock['/'] << 444 << b'{"key": "val"}'
+
+        resp = await kmock.get('/')
+        data = await resp.json()
+        assert resp.status == 444
+        assert data == {'key': 'val'}
+
+
+Performing streaming requests
+-----------------------------
+
+The embedded clients provides the functionality for streaming requests the same way as aiohttp_ does that — as context managers. The request is initiated on entering the context manager, and its streamed content can be consumed as long as the context manager remains open.
+
+.. code-block:: python
+
+    import datetime
+    import kmock
+    from typing import AsyncIterator
+
+    async def test_streaming_requests(kmock: kmock.RawHandler) -> None:
+        # The stream generator to stream the current time every second.
+        # It exits by CancelledError from `await` when the connection is closed by the client side.
+        async def timestamp_generator() -> AsyncIterator[kmock.Payload]:
+            while True:
+                now = datetime.datetime.now(tz=datetime.UTC)
+                yield now.isoformat().encode() + b'\n'
+                await asyncio.sleep(1)
+
+        # Configure the stream at the root URL (all methods).
+        kmock['/'] << timestamp_generator
+
+        # Consume the stream for 3 seconds, close the connection on exiting the ctx manager:
+        async with kmock.get('/') as resp:
+            # Let the server send something for some time.
+            await asyncio.sleep(3)
+
+            # Consume all that was sent to the moment.
+            buffer: bytes = resp.content.read_nowait()
+
+        # Depending on your luck, it is 3±1 lines in the buffer.
+        assert 2 <= len(buffer.splitlines()) <= 4
+
+See more information on how to organize streams server-side in :doc:`/streams`.

@@ -54,10 +54,11 @@ kmock = "kmock._internal.pytest"
 
 [dependency-groups]
 docs = [
-    "sphinx>=2.0.0",
+    "sphinx>=9.0.0",
     "sphinx-autobuild",
-    "sphinx-autodoc-typehints",
-    "sphinx_rtd_theme>=0.5",
+    "sphinx-autodoc-typehints>=3.6.0",
+    "sphinx_rtd_theme>=3.1.0rc1",
+    "sphinx-llm>=0.1.4",
 ]
 test = [
     "aresponses",
