@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-      - run: pip install --group dev -e .
+      - run: pip install --group lint -e .
       - run: pre-commit run --all-files
       - run: mypy kmock --strict
 
@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - run: pip install --group dev -e .
+      - run: pip install --group test -e .
       - run: coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
       - run: coverage xml
 
@@ -75,7 +75,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - run: pip install --upgrade pip wheel setuptools
-      - run: pip install --group dev -e .
+      - run: pip install --group test -e .
       - run: pytest --color=yes --timeout=2
 
   coveralls-finish:

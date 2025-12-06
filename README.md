@@ -26,3 +26,98 @@ The rationale behind the library's DSL is simple too: tests must be brief. Brief
 * Mostly hand-made by organic humans: no code formatters, not much AI.
 * Thoughtless AI code & tests for some auxiliary low-level algorithms.
 * Contributions are not welcome (but you can try).
+
+
+## Explanation by examples
+
+```python
+import aiohttp
+
+
+def function_under_test(base_url: str) -> None:
+    async with aiohttp.ClientSession(base_url=base_url) as session:
+        resp = await session.get('/')
+        text = await resp.read()
+        resp = await session.post('/hello', json={'name': text.decode()})
+        data = await resp.json()
+        return data
+
+
+async def test_me(kmock):
+    # Setup the server side.
+    kmock['get /'] << b'john'
+    kmock['post /hello'] << (lambda req: {'you-are': req.params.get('name', 'anonymous')})
+    never_called = kmock['/'] << b''
+
+    # Work in the client side.
+    data = await function_under_test(str(kmock.url))
+    assert data == {'you-are': 'john'}
+
+    # Check the server side.
+    assert len(kmock) == 2
+    assert len(kmock['get']) == 1
+    assert len(kmock['post']) == 1
+    assert kmock['post'][0].data == {'name': 'john'}
+```
+
+Even live streaming is possible. See also:
+
+* [janitor](https://github.com/nolar/janitor) for pytest task- & resource-handling.
+
+```python
+import datetime
+import asyncio
+import aiohttp
+import freezegun
+
+
+@freezegun.freeze_time("2020-01-01T00:00:00")
+async def test_k8s_out_of_the_box(kmock, janitor) -> None:
+
+    kmock['/'] << (
+        b'hello', lambda: asyncio.sleep(1), b', world!\n',
+        {'key': 'val'},
+        lambda: [(f"{i}…\n".encode(), asyncio.sleep(1)) for i in range(3)],
+        ...  # live continuation
+    )
+
+    async def pulse():
+        while True:
+            # Broadcast to every streaming request (any method, any URL).
+            kmock[...] << (lambda: datetime.datetime.now(tz=datetime.UTC).isoformat(), ...)
+            await asyncio.sleep(1)
+
+    janitor.run(pulse())
+    async with aiohttp.ClientSession(base_url='http://localhost', read_timeout=5) as session:
+        resp = await session.get('/')
+        text = await resp.read()  # this might take some time
+
+    assert text == b'hello, world!\n{"key": "val"}\n3…\n2…\n1…\n2020-01-01T00:00:05'
+```
+
+And even an out-of-box Kubernetes stateful server:
+
+```python
+import aiohttp
+import pytest
+
+
+@pytest.fixture
+def k8surl() -> str:
+  return 'http://localhost'
+
+
+def test_k8s_out_of_the_box(kmock, k8surl: str) -> None:
+    async with aiohttp.ClientSession(base_url=k8surl) as session:
+        pod1 = {'metadata': {'name': 'pod1'}, 'spec': {'key': 'val'}}
+        pod2 = {'metadata': {'name': 'pod1'}, 'spec': {'key': 'val'}}
+        await session.post('/api/v1/namespace/default/pods', json=pod1)
+        await session.post('/api/v1/namespace/default/pods', json=pod2)
+        resp = await session.get('/api/v1/namespace/default/pods')
+        data = await resp.json()
+        assert data['items'] == [pod1, pod2]
+
+    assert len(kmock[kmock.LIST]) == 1
+    assert len(kmock[kmock.resource['pods']]) == 3
+    assert kmock[kmock.resource['pods']][-1].method == 'GET'
+```

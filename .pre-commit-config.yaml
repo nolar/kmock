@@ -64,8 +64,12 @@ repos:
       - id: isort
         name: isort-source-code
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.0
-    hooks:
-    -   id: pyupgrade
-        args: [--py310-plus, --keep-mock]
+#  # TODO: bring it back when Python 3.10 is dropped (≈October 2026).
+#  #   It rewrites Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
+#  #   But we need those Union[] syntax at runtime, or it raises an error.
+#  #   --keep-runtime-typing does not help.
+#  - repo: https://github.com/asottile/pyupgrade
+#    rev: v3.21.0
+#    hooks:
+#    -   id: pyupgrade
+#        args: [--py310-plus, --keep-mock]
