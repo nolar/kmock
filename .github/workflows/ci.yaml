@@ -40,12 +40,6 @@ jobs:
       - run: coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
       - run: coverage xml
 
-      - name: Publish coverage to Coveralls.io
-        if: success()
-        run: coveralls --service=github
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        continue-on-error: true
       - name: Publish coverage to CodeCov.io
         uses: codecov/codecov-action@v5
         if: success()
@@ -77,15 +71,3 @@ jobs:
       - run: pip install --upgrade pip wheel setuptools
       - run: pip install --group test -e .
       - run: pytest --color=yes --timeout=2
-
-  coveralls-finish:
-    name: Finalize coveralls.io
-    needs: [unit-tests, pypy-tests]
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/setup-python@v6
-      - run: pip install coveralls
-      - run: coveralls --service=github --finish
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        continue-on-error: true
