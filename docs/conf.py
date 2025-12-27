@@ -30,7 +30,7 @@ extensions = [
 templates_path = []
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_static_path = []
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 default_role = 'py:obj'
 
