@@ -27,9 +27,9 @@ extensions = [
     'sphinx_llm.txt',
 ]
 
-templates_path = ['_templates']
+templates_path = []
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-html_static_path = ['_static']
+html_static_path = []
 html_theme = 'sphinx_rtd_theme'
 
 default_role = 'py:obj'
