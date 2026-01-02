@@ -3,6 +3,7 @@
 [![GitHub](https://img.shields.io/github/stars/nolar/kmock?style=flat&label=GitHub%E2%AD%90%EF%B8%8F)](https://github.com/nolar/kmock)
 [![CI](https://github.com/nolar/kmock/actions/workflows/ci.yaml/badge.svg)](https://github.com/nolar/kmock/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/nolar/kmock/graph/badge.svg?token=MUJFPDGD9K)](https://codecov.io/gh/nolar/kmock)
+[![coveralls](https://coveralls.io/repos/github/nolar/kmock/badge.svg?branch=main)](https://coveralls.io/github/nolar/kmock?branch=main)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/kmock.svg)](https://pypi.org/project/kmock/)
 
 — Kmock-kmock…

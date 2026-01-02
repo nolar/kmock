@@ -38,8 +38,13 @@ jobs:
 
       - run: pip install --group test -e .
       - run: coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
-      - run: coverage xml
 
+      - name: Publish coverage to Coveralls.io
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel: true
+          flag-name: ${{ matrix.python-version }}
+        if: success()
       - name: Publish coverage to CodeCov.io
         uses: codecov/codecov-action@v5
         if: success()
@@ -70,3 +75,13 @@ jobs:
       - run: pip install --upgrade pip wheel setuptools
       - run: pip install --group test -e .
       - run: pytest --color=yes --timeout=2
+
+  coveralls-finish:
+    name: Finalize coveralls.io
+    needs: [unit-tests, pypy-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Finish coverage at Coveralls.io
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true
