@@ -353,6 +353,10 @@ class KubernetesEmulator(KubernetesScaffold):
         Simulator vs. emulator: https://stackoverflow.com/a/1584701/857383
     """
 
+    # Whether to fail on updates of non-existing objects (True), or ignore it (False).
+    # Keep it as False if you intercept URLs manually instead of exclusively using the emulator.
+    strict: bool = False
+
     # The accessible/modifiable container of all objects stored in memory (unordered).
     _objects: k8s_views.ObjectsArray = attrs.field(factory=k8s_views.ObjectsArray, init=False)
 
@@ -384,18 +388,21 @@ class KubernetesEmulator(KubernetesScaffold):
                     object_name = obj.get('metadata', {}).get('name')
                     object_namespace = obj.get('metadata', {}).get('namespace')
                     object_key = (request.resource, request.namespace or object_namespace, object_name)
-                    if object_key not in self._objects:
-                        self._objects[object_key] = request.data
-                    elif not self._objects[object_key].deleted:
-                        raise KubernetesObjectConflictError()
+                    if object_key in self._objects and not self._objects[object_key].deleted:
+                        if self.strict:
+                            raise KubernetesObjectConflictError()
                     else:
-                        self._objects[object_key].create(request.data)
-                    raw = self._objects[object_key].last.raw
-                    await self._buses[request.resource].put({'type': 'ADDED', 'object': raw})
+                        if object_key not in self._objects:
+                            self._objects[object_key] = request.data
+                        else:
+                            self._objects[object_key].create(request.data)
+                        raw = self._objects[object_key].last.raw
+                        await self._buses[request.resource].put({'type': 'ADDED', 'object': raw})
                 elif request.action == enums.action.DELETE and request.name is not None:
                     object_key = (request.resource, request.namespace, request.name)
                     if object_key not in self._objects or self._objects[object_key].deleted:
-                        raise KubernetesObjectNotFoundError()
+                        if self.strict:
+                            raise KubernetesObjectNotFoundError()
                     elif self._objects[object_key].get('metadata', {}).get('deletionTimestamp'):
                         pass  # already marked for deletion, nothing to do here
                     elif self._objects[object_key].get('metadata', {}).get('finalizers', []):
@@ -412,10 +419,12 @@ class KubernetesEmulator(KubernetesScaffold):
                 elif request.action == enums.action.UPDATE and request.name is not None:
                     object_key = (request.resource, request.namespace, request.name)
                     if object_key not in self._objects or self._objects[object_key].deleted:
-                        raise KubernetesObjectNotFoundError()
-                    self._objects[object_key].patch(request.data)
-                    raw = self._objects[object_key].raw
-                    await self._buses[request.resource].put({'type': 'MODIFIED', 'object': raw})
+                        if self.strict:
+                            raise KubernetesObjectNotFoundError()
+                    else:
+                        self._objects[object_key].patch(request.data)
+                        raw = self._objects[object_key].raw
+                        await self._buses[request.resource].put({'type': 'MODIFIED', 'object': raw})
 
                 if object_key is not None and object_key in self._objects and not self._objects[object_key].deleted:
                     obj = self._objects[object_key]
