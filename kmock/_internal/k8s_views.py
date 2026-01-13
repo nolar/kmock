@@ -35,7 +35,7 @@ def _parse_resource(key: ResourceKey) -> resources.resource:
     match key:
         case resources.resource():
             return key
-        case str():
+        case str() | resources.Selectable():
             return resources.resource(key)
         case tuple():  # length 1 & 2 & 3
             return resources.resource(*key)

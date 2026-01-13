@@ -1,6 +1,14 @@
+import attrs
 import pytest
 
 from kmock import KubernetesScaffold, ResourceInfo, ResourcesArray, resource
+
+
+@attrs.frozen
+class TestSelectable:
+    group: str | None
+    version: str | None
+    plural: str | None
 
 
 def test_resource_info_empty() -> None:
@@ -67,25 +75,29 @@ def test_resources_properties_filled() -> None:
     assert list(resources.items()) == [(res, ResourceInfo(singular='Sample'))]
 
 
-def test_resources_creation_with_arguments() -> None:
+def test_resources_creation_with_arguments_from_infos() -> None:
     resources = ResourcesArray({
         'v1/pods': ResourceInfo(kind='Pod'),
         resource('kopf.dev', 'v1', 'kopfexamples'): ResourceInfo(kind='KopfExample'),
+        TestSelectable('kopf.dev', 'v1', 'selectable'): ResourceInfo(kind='Selectable'),
     })
-    assert len(resources) == 2
-    assert set(resources) == {resource('', 'v1', 'pods'), resource('kopf.dev', 'v1', 'kopfexamples')}
+    assert len(resources) == 3
+    assert set(resources) == {resource('', 'v1', 'pods'), resource('kopf.dev', 'v1', 'kopfexamples'), resource('kopf.dev', 'v1', 'selectable')}
     assert resources['v1/pods'] == ResourceInfo(kind='Pod')
+    assert resources['kopf.dev/v1/selectable'] == ResourceInfo(kind='Selectable')
     assert resources['kopf.dev/v1/kopfexamples'] == ResourceInfo(kind='KopfExample')
 
 
-def test_resources_creation_from_dicts() -> None:
+def test_resources_creation_with_arguments_from_dicts() -> None:
     resources = ResourcesArray({
         'v1/pods': {'kind': 'Pod'},
         resource('kopf.dev', 'v1', 'kopfexamples'): {'kind': 'KopfExample'},
+        TestSelectable('kopf.dev', 'v1', 'selectable'): {'kind': 'Selectable'},
     })
-    assert len(resources) == 2
-    assert set(resources) == {resource('', 'v1', 'pods'), resource('kopf.dev', 'v1', 'kopfexamples')}
+    assert len(resources) == 3
+    assert set(resources) == {resource('', 'v1', 'pods'), resource('kopf.dev', 'v1', 'kopfexamples'), resource('kopf.dev', 'v1', 'selectable')}
     assert resources['v1/pods'] == ResourceInfo(kind='Pod')
+    assert resources['kopf.dev/v1/selectable'] == ResourceInfo(kind='Selectable')
     assert resources['kopf.dev/v1/kopfexamples'] == ResourceInfo(kind='KopfExample')
 
 
@@ -119,6 +131,12 @@ def test_resources_containing_by_string() -> None:
     assert 'v1/unexistent' not in resources
 
 
+def test_resources_containing_by_selectable() -> None:
+    resources = ResourcesArray({resource('v1/pods'): ResourceInfo(kind='Pod')})
+    assert TestSelectable('', 'v1', 'pods') in resources
+    assert TestSelectable('', 'v1', 'unexistent') not in resources
+
+
 def test_resources_getting_by_resource() -> None:
     resources = ResourcesArray({resource('v1/pods'): ResourceInfo(kind='Pod')})
     assert resources[resource('v1/pods')] == ResourceInfo(kind='Pod')
@@ -129,6 +147,12 @@ def test_resources_getting_by_string() -> None:
     resources = ResourcesArray({resource('v1/pods'): ResourceInfo(kind='Pod')})
     assert resources['v1/pods'] == ResourceInfo(kind='Pod')
     assert resources['v1/unexistent'] == ResourceInfo()  # auto-created
+
+
+def test_resources_getting_by_selectable() -> None:
+    resources = ResourcesArray({resource('v1/pods'): ResourceInfo(kind='Pod')})
+    assert resources[TestSelectable('', 'v1', 'pods')] == ResourceInfo(kind='Pod')
+    assert resources[TestSelectable('', 'v1', 'unexistent')] == ResourceInfo()  # auto-created
 
 
 def test_resources_getting_by_wrong_key() -> None:
@@ -146,6 +170,12 @@ def test_resources_setting_by_resource() -> None:
 def test_resources_setting_by_string() -> None:
     resources = ResourcesArray()
     resources['v1/pods'] = ResourceInfo(kind='Pod')
+    assert list(resources.items()) == [(resource('v1/pods'), ResourceInfo(kind='Pod'))]
+
+
+def test_resources_setting_by_selectable() -> None:
+    resources = ResourcesArray()
+    resources[TestSelectable('', 'v1', 'pods')] = ResourceInfo(kind='Pod')
     assert list(resources.items()) == [(resource('v1/pods'), ResourceInfo(kind='Pod'))]
 
 
@@ -185,6 +215,16 @@ def test_resources_deleting_by_string() -> None:
     assert list(resources) == [resource('kopf.dev/v1/kopfexamples')]
     with pytest.raises(KeyError):
         del resources['v1/unexistent']
+
+
+def test_resources_deleting_by_selectable() -> None:
+    resources = ResourcesArray()
+    resources[TestSelectable('', 'v1', 'pods')] = ResourceInfo()
+    resources[TestSelectable('kopf.dev', 'v1', 'kopfexamples')] = ResourceInfo()
+    del resources[TestSelectable('', 'v1', 'pods')]
+    assert list(resources) == [resource('kopf.dev/v1/kopfexamples')]
+    with pytest.raises(KeyError):
+        del resources[TestSelectable('', 'v1', 'unexistent')]
 
 
 def test_resources_deleting_by_wrong_key() -> None:
