@@ -288,7 +288,7 @@ class KubernetesScaffold(apps.RawHandler):
 
         # Only sufficiently specific resources and only for the requested group/version.
         resources = [res for res in self._get_resources() if request.resource.check(res)]
-        if not resources:
+        if not resources and request.resource.group != '':
             raise KubernetesResourceNotFoundError()
         return {
             'apiVersion': 'v1',  # of APIResourceList, not of the served group

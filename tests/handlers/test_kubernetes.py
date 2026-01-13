@@ -130,6 +130,14 @@ async def test_group_discovery(kmock: KubernetesEmulator) -> None:
     assert data['preferredVersion'] == {'version': 'v1', 'groupVersion': 'kopf.dev/v1'}
 
 
+async def test_version_discovery_of_coreapi_when_empty(kmock: KubernetesEmulator) -> None:
+    resp = await kmock.get('/api/v1')
+    data = await resp.json()
+    assert data['apiVersion'] == 'v1'
+    assert data['kind'] == 'APIResourceList'
+    assert data['resources'] == []
+
+
 async def test_version_discovery_of_coreapi_from_filters(kmock: KubernetesEmulator) -> None:
     # The extended information and sub-resources are not available in filters.
     kmock[kmock.resource('v1/pods')] << None  # strictly a filter!
