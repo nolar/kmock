@@ -262,10 +262,17 @@ class Criteria:
                 if not arg:
                     return None
                 elif (maybe_http := parsing.ParsedHTTP.parse(arg)) is not None:
-                    return HTTPCriteria(method=maybe_http.method, path=maybe_http.path,
-                                        params=dict(maybe_http.params) if maybe_http.params else None)
-                elif (maybe_k8s := parsing.ParsedK8s.parse(arg)) is not None and maybe_k8s.action:
-                    return K8sCriteria(action=maybe_k8s.action, resource=maybe_k8s.resource)
+                    return HTTPCriteria(
+                        method=maybe_http.method,
+                        path=maybe_http.path,
+                        params=dict(maybe_http.params) if maybe_http.params else None,
+                    )
+                elif (maybe_k8s := parsing.ParsedK8s.parse(arg)) is not None and (maybe_k8s.method or maybe_k8s.action):
+                    return K8sCriteria(
+                        method=maybe_k8s.method,
+                        action=maybe_k8s.action,
+                        resource=maybe_k8s.resource,
+                    )
                 else:
                     return StrCriteria(arg)
             case collections.abc.Mapping():
@@ -377,6 +384,7 @@ class K8sCriteria(OptiCriteria):
     This is also an example of extending KMock for app-specific handling.
     """
 
+    method: enums.method | None = None
     action: enums.action | None = None
     resource: resources.resource | None = None
     namespace: re.Pattern[str] | str | None = None
@@ -387,6 +395,7 @@ class K8sCriteria(OptiCriteria):
     def __call__(self, request: rendering.Request) -> bool:
         return (
             True
+            and self._check(self.method, request.method)
             and self._check(self.action, request.action)
             and self._check(self.resource, request.resource)
             and self._check(self.subresource, request.subresource)

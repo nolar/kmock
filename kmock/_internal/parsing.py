@@ -43,25 +43,28 @@ class ParsedHTTP:
 
 @attrs.frozen
 class ParsedK8s:
+    method: enums.method | None
     action: enums.action | None
     resource: resources.resource | None
 
     @classmethod
     def parse(cls, s: str) -> Self | None:
-        maybe_action, *parts = s.split(maxsplit=1)
+        maybe_verb, *parts = s.split(maxsplit=1)
+        method: enums.method | None = enums.method(maybe_verb)
         try:
-            action = enums.action(maybe_action)
+            action = enums.action(maybe_verb)
         except ValueError:
             action = None
+        method = method if method in set(enums.method) else None  # ignore unknown methods!
         action = action if action in set(enums.action) else None  # ignore unknown actions!
-        s = s if action is None else parts[0] if parts else ''
+        s = s if method is None and action is None else parts[0] if parts else ''
 
         # No extra checks: it is impossible to make these two to be None in tests or in reality.
         # If the first word is not a known action and the action becomes None, then that word
         # goes to the resource parser and becomes the plural name of the resource (never None).
         resource: resources.resource | None = resources.resource(s)
         resource = None if resource is None or (resource.group is None and resource.version is None and resource.plural is None) else resource
-        return cls(action, resource)
+        return cls(method, action, resource)
 
 
 @attrs.frozen
