@@ -47,7 +47,7 @@ class KubernetesResourceNotFoundError(KubernetesNotFoundError):
     reason: str = 'Resource Not Found'
     message: str = (
         "The resource is not declared in the Kubernetes server."
-        " Declare it as: kmock[resource('group', 'v1', 'plural')] << None"
+        " Declare it either way, e.g.: kmock.resources['group/v1/plural'] = {}"
     )
 
 
@@ -57,7 +57,7 @@ class KubernetesObjectNotFoundError(KubernetesNotFoundError):
     reason: str = 'Object Not Found'
     message: str = (
         "The object is not found in the Kubernetes server for a known resource."
-        " Add it as: kmock.object[res, 'ns', 'name'] = {'spec': ...}"
+        " Add it as: kmock.objects[res, 'ns', 'name'] = {'spec': ...}"
     )
 
 
@@ -320,6 +320,7 @@ class KubernetesScaffold(apps.RawHandler):
     # For when the fixture name overlaps the library name, so that it requires writing `import…as…`.
     ResourceKey = k8s_views.ResourceKey
     ResourceInfo = k8s_views.ResourceInfo
+    ResourceDict = k8s_views.ResourceDict
     ResourcesArray = k8s_views.ResourcesArray
 
 

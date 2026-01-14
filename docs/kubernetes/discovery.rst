@@ -42,24 +42,24 @@ Examples addressing the ``kmock.resources`` associative array in all supported w
     async def test_resource_addressing(kmock: kmock.KubernetesScaffold) -> None:
 
         # Explicit kwargs to the resource class:
-        kmock.resources[kmock.resource(group='', version='v1', plural='pods')] = kmock.ResourceInfo()
-        kmock.resources[kmock.resource(group='kopf.dev', version='v1', plural='kopfexamples')] = kmock.ResourceInfo()
+        kmock.resources[kmock.resource(group='', version='v1', plural='pods')] = {}
+        kmock.resources[kmock.resource(group='kopf.dev', version='v1', plural='kopfexamples')] = {}
 
         # Positional args to the resource class:
-        kmock.resources[kmock.resource('', 'v1', 'pods')] = kmock.ResourceInfo()
-        kmock.resources[kmock.resource('kopf.dev', 'v1', 'kopfexamples')] = kmock.ResourceInfo()
+        kmock.resources[kmock.resource('', 'v1', 'pods')] = {}
+        kmock.resources[kmock.resource('kopf.dev', 'v1', 'kopfexamples')] = {}
 
         # Parseable strings to the resource class:
-        kmock.resources[kmock.resource('v1/pods')] = kmock.ResourceInfo()
-        kmock.resources[kmock.resource('pods.v1')] = kmock.ResourceInfo()
-        kmock.resources[kmock.resource('kopf.dev/v1/kopfexamples')] = kmock.ResourceInfo()
-        kmock.resources[kmock.resource('kopfexamples.v1.kopf.dev')] = kmock.ResourceInfo()
+        kmock.resources[kmock.resource('v1/pods')] = {}
+        kmock.resources[kmock.resource('pods.v1')] = {}
+        kmock.resources[kmock.resource('kopf.dev/v1/kopfexamples')] = {}
+        kmock.resources[kmock.resource('kopfexamples.v1.kopf.dev')] = {}
 
         # Parseable strings directly as keys (recommended):
-        kmock.resources['v1/pods'] = kmock.ResourceInfo()
-        kmock.resources['pods.v1'] = kmock.ResourceInfo()
-        kmock.resources['kopf.dev/v1/kopfexamples'] = kmock.ResourceInfo()
-        kmock.resources['kopfexamples.v1.kopf.dev'] = kmock.ResourceInfo()
+        kmock.resources['v1/pods'] = {}
+        kmock.resources['pods.v1'] = {}
+        kmock.resources['kopf.dev/v1/kopfexamples'] = {}
+        kmock.resources['kopfexamples.v1.kopf.dev'] = {}
 
 For the presence of the resource, the regular payloads are used, so the resource can be specified without the meta-information this way — and still be visible to the cluster & resource discovery:
 
@@ -74,15 +74,15 @@ For the presence of the resource, the regular payloads are used, so the resource
 Resource meta-information
 =========================
 
-Only the ``kmock.resources`` associative array allows adding the extended meta-information about the resources beyond the three identifying fields (group, version, plural) — via the :class:`kmock.ResourceInfo`. These extra fields include:
+Only the ``kmock.resources`` associative array allows adding the extended meta-information about the resources beyond the three identifying fields (group, version, plural) — via the :class:`kmock.ResourceInfo` or plain dicts with the same keys. These extra fields/keys include:
 
-- kind
-- singular name
-- categories
-- subresources
-- short names (aka aliases)
-- verbs
-- namespaced flag (boolean; if False, the the cluster-wide resource; if None, then undefined)
+- ``kind`` (string, usually capitalized)
+- ``singular`` name (string, usally lower-cased)
+- ``categories`` (a set of strings)
+- ``subresources`` (a set of strings)
+- ``shortnames`` (a set of strings; aka aliases)
+- ``verbs`` (a set of strings)
+- ``namespaced`` flag (boolean; if False, the the cluster-wide resource; if None, then undefined)
 
 The resource meta-information can be added as a single object:
 
@@ -100,6 +100,23 @@ The resource meta-information can be added as a single object:
             subresources={'status'},
             namespaced=True,
         )
+
+The resource meta-information can be added as a dictm, in which case it is implicitly converted to a new instance of :class:`kmock.ResourceInfo`:
+
+.. code-block:: python
+
+    import kmock
+
+    async def test_resource_information_as_one_dict(kmock: kmock.KubernetesScaffold) -> None:
+        kmock.resources['v1/pods'] = {
+            'kind': 'Pod',
+            'singular': 'pod',
+            'shortnames': {'po'},
+            'categories': {'category1', 'category2'},
+            'verbs': {'get', 'post', 'patch', 'delete'},
+            'subresources': {'status'},
+            'namespaced': True,
+        }
 
 For brevity, the resource meta-information can be added on a field-by-field basis — in that case, the empty instance of :class:`kmock.ResourceInfo` is created if it is absent:
 

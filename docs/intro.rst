@@ -81,7 +81,7 @@ We then simulate two operations: a creation of a resource and a deletion of the 
 
     async def test_k8s_watch(kmock: kmock.KubernetesEmulator) -> None:
         # Announce the existence of the resource to the server.
-        kmock.resources['kopf.dev/v1/kopfexamples'] = kmock.ResourceInfo()
+        kmock.resources['kopf.dev/v1/kopfexamples'] = {}
 
         # The stream must start BEFORE the activity happens.
         async with kmock.get('/apis/kopf.dev/v1/kopfexamples?watch=true') as resp:

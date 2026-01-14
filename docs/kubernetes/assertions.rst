@@ -133,7 +133,7 @@ In this example, the full actual history of the object is checked and asserted, 
 
     async def test_history_precisely(kmock: kmock.KubernetesEmulator) -> None:
         # Declare the resource as supported.
-        await kmock.resources['kopf.dev/v1/kopfexamples'] = kmock.ResourceInfo()
+        await kmock.resources['kopf.dev/v1/kopfexamples'] = {}
 
         # Create and modify the resource object several times, then soft-delete it.
         await kmock.post('/apis/kopf.dev/v1/kopfexamples', json={'spec': 123, 'metadata': {'name': 'n1'}})
@@ -165,7 +165,7 @@ In this example, the history must contain the versions that include spec 123 and
 
     async def test_history_inclusion(kmock: kmock.KubernetesEmulator) -> None:
         # Declare the resource as supported.
-        await kmock.resources['kopf.dev/v1/kopfexamples'] = kmock.ResourceInfo()
+        await kmock.resources['kopf.dev/v1/kopfexamples'] = {}
 
         # Create and modify the resource object several times, then soft-delete it.
         await kmock.post('/apis/kopf.dev/v1/kopfexamples', json={'spec': 123, 'metadata': {'name': 'n1'}})
