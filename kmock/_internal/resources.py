@@ -21,7 +21,7 @@ class Selectable(Protocol):
     plural: str | None
 
 
-@attrs.frozen(init=False)
+@attrs.frozen(init=False, eq=False, unsafe_hash=True)
 class resource(Selectable):
     """
     A resource specification that can match several resource kinds.
@@ -117,6 +117,16 @@ class resource(Selectable):
             version=version if version is not None else parsed_version,
             plural=plural if plural is not None else parsed_plural,
         )
+
+    def __eq__(self, other: object) -> bool:
+        match other:
+            case resource() | Selectable():
+                return (self.group, self.version, self.plural) == (other.group, other.version, other.plural)
+            case str():
+                parsed = resource(other)
+                return (self.group, self.version, self.plural) == (parsed.group, parsed.version, parsed.plural)
+            case _:
+                return NotImplemented
 
     def check(self, resource: Selectable) -> bool:
         return bool(
