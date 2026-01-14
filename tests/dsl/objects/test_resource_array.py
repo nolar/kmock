@@ -78,6 +78,22 @@ def test_resources_creation_with_arguments() -> None:
     assert resources['kopf.dev/v1/kopfexamples'] == ResourceInfo(kind='KopfExample')
 
 
+def test_resources_creation_from_dicts() -> None:
+    resources = ResourcesArray({
+        'v1/pods': {'kind': 'Pod'},
+        resource('kopf.dev', 'v1', 'kopfexamples'): {'kind': 'KopfExample'},
+    })
+    assert len(resources) == 2
+    assert set(resources) == {resource('', 'v1', 'pods'), resource('kopf.dev', 'v1', 'kopfexamples')}
+    assert resources['v1/pods'] == ResourceInfo(kind='Pod')
+    assert resources['kopf.dev/v1/kopfexamples'] == ResourceInfo(kind='KopfExample')
+
+
+def test_resources_creation_from_dict_with_wrong_type() -> None:
+    with pytest.raises(TypeError, match="Unsupported resource value: 123"):
+        ResourcesArray({'v1/pods': 123})
+
+
 def test_resources_repr_empty() -> None:
     resources = ResourcesArray()
     r = repr(resources)
@@ -137,6 +153,18 @@ def test_resources_setting_by_wrong_key() -> None:
     resources = ResourcesArray()
     with pytest.raises(TypeError, match="Unsupported resource key: 123"):
         resources[123] = ResourceInfo()
+
+
+def test_resources_setting_from_dict() -> None:
+    resources = ResourcesArray()
+    resources['v1/pods'] = {'kind': 'Pod'}
+    assert list(resources.items()) == [(resource('v1/pods'), ResourceInfo(kind='Pod'))]
+
+
+def test_resources_setting_from_dict_with_wrong_type() -> None:
+    resources = ResourcesArray()
+    with pytest.raises(TypeError, match="Unsupported resource value: 123"):
+        resources['v1/pods'] = 123
 
 
 def test_resources_deleting_by_resource() -> None:

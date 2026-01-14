@@ -320,6 +320,7 @@ class KubernetesScaffold(apps.RawHandler):
     # For when the fixture name overlaps the library name, so that it requires writing `import…as…`.
     ResourceKey = k8s_views.ResourceKey
     ResourceInfo = k8s_views.ResourceInfo
+    ResourceDict = k8s_views.ResourceDict
     ResourcesArray = k8s_views.ResourcesArray
 
 

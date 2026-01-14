@@ -1,6 +1,6 @@
 import collections.abc
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
-from typing import Any, TypeGuard, overload
+from typing import Any, TypeGuard, TypedDict, overload
 
 import attrs
 
@@ -43,6 +43,17 @@ def _parse_resource(key: ResourceKey) -> resources.resource:
             raise TypeError(f"Unsupported resource key: {key!r}")
 
 
+class ResourceDict(TypedDict, total=True):
+    # All the same keys as the attributes of ResourceInfo, but with no defaults (and thus Nones).
+    namespaced: bool
+    kind: str
+    singular: str
+    verbs: Iterable[str]
+    shortnames: Iterable[str]
+    categories: Iterable[str]
+    subresources: Iterable[str]
+
+
 @attrs.define(repr=False, kw_only=True)
 class ResourceInfo:
     """
@@ -77,7 +88,7 @@ class ResourceInfo:
 
 
 @attrs.define(init=False, repr=False, eq=False, order=False)
-class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo]):
+class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     """
     An associative array of extended information about cluster resources.
 
@@ -108,9 +119,19 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo]):
     """
     _resources: dict[resources.resource, ResourceInfo] = attrs.field(factory=dict, init=False)
 
-    def __init__(self, resources: Mapping[ResourceKey, ResourceInfo] | None = None, /) -> None:
+    def __init__(self, resources: Mapping[ResourceKey, ResourceInfo | ResourceDict] | None = None, /) -> None:
         super().__init__()
-        self._resources = {_parse_resource(key): val for key, val in (resources or {}).items()}
+
+        self._resources = {}
+        for key, val in (resources or {}).items():
+            resource = _parse_resource(key)
+            match val:
+                case ResourceInfo():
+                    self._resources[resource] = val
+                case Mapping():
+                    self._resources[resource] = ResourceInfo(**val)  # type: ignore[arg-type]
+                case _:
+                    raise TypeError(f"Unsupported resource value: {val!r}")
 
     def __repr__(self) -> str:
         subrepr = ', '.join(f'{res!r}: {info!r}' for res, info in self._resources.items())
@@ -129,9 +150,15 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo]):
     def __contains__(self, key: object, /) -> bool:
         return (_parse_resource(key) if _is_resource_key(key) else key) in self._resources
 
-    def __setitem__(self, key: ResourceKey, value: ResourceInfo, /) -> None:
+    def __setitem__(self, key: ResourceKey, value: ResourceInfo | ResourceDict, /) -> None:
         res = _parse_resource(key)
-        self._resources[res] = value
+        match value:
+            case ResourceInfo():
+                self._resources[res] = value
+            case Mapping():
+                self._resources[res] = ResourceInfo(**value)   # type: ignore[arg-type]
+            case _:
+                raise TypeError(f"Unsupported resource value: {value!r}")
 
     def __delitem__(self, key: ResourceKey, /) -> None:
         res = _parse_resource(key)
