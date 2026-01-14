@@ -46,7 +46,7 @@ KMock runs well with looptime_, the time dilation/contraction library for asynci
 
    ideas
    scope
-   linters
+   caveats
 
 .. toctree::
    :maxdepth: 2
