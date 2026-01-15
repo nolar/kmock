@@ -206,9 +206,12 @@ async def test_async_condition_notifying(kmock: RawHandler) -> None:
 
     task = asyncio.create_task(wait())
     await kmock.get('/')
-    assert counter == 1
+    async with condition:
+        assert counter == 1
+
     await kmock.post('/')
-    assert counter == 2
+    async with condition:
+        assert counter == 2
 
     task.cancel()
     try:
@@ -234,12 +237,18 @@ async def test_sync_condition_notifying(kmock: RawHandler) -> None:
 
     thread = threading.Thread(target=wait)
     thread.start()
-    ready.wait()
 
+    ready.wait()
+    ready.clear()
     await kmock.get('/')
-    assert counter == 1
+    with condition:
+        assert counter == 1
+
+    ready.wait()
+    ready.clear()
     await kmock.post('/')
-    assert counter == 2
+    with condition:
+        assert counter == 2
 
     exited = True
     with condition:
