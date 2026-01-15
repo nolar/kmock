@@ -31,6 +31,11 @@ def test_patch_key_removal_via_kwargs():
     assert d == {}
 
 
+def test_patch_nested_nulls_removal():
+    d = patch_dict({}, {'spec': {'key': None, 'other': 'unaffected'}})
+    assert d == {'spec': {'other': 'unaffected'}}
+
+
 def test_patch_recursive_dicts():
     d = {'spec': {'key': 'old', 'other': 'unaffected'}}
     p = {'spec': {'key': 'new'}}

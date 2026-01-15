@@ -40,6 +40,8 @@ def patch_dict(value: Mapping[str, Any], patch: Mapping[str, Any], /, **kwargs: 
                 result[key] = value[key]
             case _, _ if patch[key] is None:  # deleted keys
                 pass
+            case _, collections.abc.Mapping() if key not in value:  # new appended keys
+                result[key] = patch_dict({}, patch[key])
             case _, _ if key not in value:  # new appended keys
                 result[key] = patch[key]
             case collections.abc.Mapping(), collections.abc.Mapping():
