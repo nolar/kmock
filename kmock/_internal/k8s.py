@@ -171,11 +171,11 @@ class KubernetesScaffold(apps.RawHandler):
         for payload in self._payloads:  # implicitly declared
             for filter in payload._walk(dsl.Filter):
                 if isinstance(filter.criteria, filtering.K8sCriteria):
-                    if filter.criteria.resource is not None:
+                    if filter.criteria.resource not in (None, Ellipsis):
                         resource = filter.criteria.resource
-                        if resource.group is not None and resource.version is not None:
+                        if resource.group not in (None, Ellipsis) and resource.version not in (None, Ellipsis):
                             name = resource.plural
-                            if name is not None and name.lower() == name:
+                            if name not in (None, Ellipsis) and name.lower() == name:
                                 result.add(resource)
         return list(result)
 
@@ -218,11 +218,11 @@ class KubernetesScaffold(apps.RawHandler):
             group: {
                 resource.version
                 for resource in resources
-                if resource.version is not None and resource.group == group
+                if resource.version not in (None, Ellipsis) and resource.group == group
             }
             for group in {
                 resource.group for resource in resources
-                if resource.group is not None and resource.group != ''  # excluding the core v1
+                if resource.group not in (None, Ellipsis) and resource.group != ''  # excluding the core v1
             }
         }
         return {

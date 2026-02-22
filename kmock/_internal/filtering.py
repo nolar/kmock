@@ -7,7 +7,8 @@ import fnmatch
 import inspect
 import re
 import threading
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
+from types import EllipsisType
 from typing import Any, Protocol, TypeAlias, TypeVar, Union, runtime_checkable
 
 import aiohttp.web
@@ -18,6 +19,27 @@ from kmock._internal import boxes, enums, parsing, rendering, resources
 
 T = TypeVar('T')
 V = TypeVar('V')
+
+
+# TODO: Redesign? We use `...` (Ellipsis) in dicts to match any value.
+#       Why don't we use it in fields, too? Do so!
+# class _AnyT(enum.Enum):
+#     """
+#     A sentinel for "any" value, i.e. the aspect is ignored in filtering.
+#
+#     It is not exposed to the users and should not be used by the users.
+#     If the users want "any" value to pass, they simply do not set the criterion.
+#
+#     The common alternative and temptation is to use ``None`` for this purpose,
+#     but it breaks the semantics and readability in most cases:
+#
+#     - ``kmock.subresource(None)`` reads as "no subresource", meaning only
+#       the main object requests, not "any subresource", including the real ones.
+#     - ``kmock.namespace(None)`` reads as cluster-wide requests with strictly
+#       absent namespace, not "any namespace", both absent and real ones.
+#     - so on…
+#     """
+#     ANY = object()
 
 
 @runtime_checkable
@@ -90,9 +112,7 @@ class Criteria:
     def _check(self, pat: Criterion, val: Any, *, glob: bool = False) -> bool:
         match pat, val:
             # No criteria means matching everything.
-            case None, _:
-                # TODO: this is a DX BUG! checking a data dict {'a': 'b'} vs pattern {'a': None}
-                #       should NOT lead to True. 'a' must be either null or absent. 'b' != None!
+            case EllipsisType(), _:
                 return True
 
             # Special types & wrappers check for themselves.
@@ -262,16 +282,19 @@ class Criteria:
                 if not arg:
                     return None
                 elif (maybe_http := parsing.ParsedHTTP.parse(arg)) is not None:
+                    # Reminder: Ellipsis means "any value", None means explicitly "no value".
                     return HTTPCriteria(
-                        method=maybe_http.method,
-                        path=maybe_http.path,
-                        params=dict(maybe_http.params) if maybe_http.params else None,
+                        method=maybe_http.method if maybe_http.method is not None else ...,
+                        path=maybe_http.path if maybe_http.path is not None else ...,
+                        params=maybe_http.params if maybe_http.params is not None else ...,
                     )
                 elif (maybe_k8s := parsing.ParsedK8s.parse(arg)) is not None and (maybe_k8s.method or maybe_k8s.action):
+                    # Reminder: Ellipsis means "any value", None means explicitly "no value".
+                    # TODO: does the parser return ... or Nones? (it makes sense to return None when not parsed)
                     return K8sCriteria(
-                        method=maybe_k8s.method,
-                        action=maybe_k8s.action,
-                        resource=maybe_k8s.resource,
+                        method=maybe_k8s.method if maybe_k8s.method is not None else ...,
+                        action=maybe_k8s.action if maybe_k8s.action is not None else ...,
+                        resource=maybe_k8s.resource if maybe_k8s.resource is not None else ...,
                     )
                 else:
                     return StrCriteria(arg)
@@ -323,12 +346,12 @@ class OptiCriteria(Criteria):
     def _combine(self, path: list[str], a: Any, b: Any) -> Any:
         if isinstance(a, dict) and isinstance(b, dict):
             return self._combine_dicts(path, a, b)
-        elif a is not None and b is not None and a != b:
+        elif a is not ... and b is not ... and a != b:
             keys_str = ''.join(f"[{key!r}]" for key in path[1:])
             path_str = f"{path[0]}{keys_str}"
             raise ValueError(f"Ambiguous values of {path_str}: {a!r} vs. {b!r}")
         else:
-            return b if b is not None else a if a is not None else None
+            return b if b is not ... else a if a is not ... else ...
 
     def _combine_dicts(self, path: list[str], a: dict[str, T], b: dict[str, T]) -> dict[str, T]:
         m: dict[str, Any] = {}
@@ -350,14 +373,15 @@ class HTTPCriteria(OptiCriteria):
     The generic HTTP-level criteria of the request (not involving K8s aspects).
     """
 
-    method: enums.method | None = None
-    path: re.Pattern[str] | str | None = None
-    text: re.Pattern[str] | str | None = None
-    body: re.Pattern[bytes] | bytes | None = None
-    data: Any | None = None
-    params: dict[str, None | str | re.Pattern[str]] | None = None
-    cookies: dict[str, None | str | re.Pattern[str]] | None = None
-    headers: dict[str, None | str | re.Pattern[str]] | None = None
+    # Reminder: Ellipsis means "any value", None means explicitly "no value".
+    method: enums.method | None | EllipsisType = ...
+    path: re.Pattern[str] | str | None | EllipsisType = ...
+    text: re.Pattern[str] | str | None | EllipsisType = ...
+    body: re.Pattern[bytes] | bytes | None | EllipsisType = ...
+    data: Any | None | EllipsisType = ...
+    params: dict[str, None | str | re.Pattern[str]] | None | EllipsisType = ...
+    cookies: dict[str, None | str | re.Pattern[str]] | None | EllipsisType = ...
+    headers: dict[str, None | str | re.Pattern[str]] | None | EllipsisType = ...
 
     def __call__(self, request: rendering.Request) -> bool:
         return (
@@ -384,13 +408,15 @@ class K8sCriteria(OptiCriteria):
     This is also an example of extending KMock for app-specific handling.
     """
 
-    method: enums.method | None = None
-    action: enums.action | None = None
-    resource: resources.resource | None = None
-    namespace: re.Pattern[str] | str | None = None
-    clusterwide: bool | None = None
-    name: re.Pattern[str] | str | None = None
-    subresource: re.Pattern[str] | str | None = None
+    # Reminder: Ellipsis means "any value", None means explicitly "no value".
+    method: enums.method | None | EllipsisType = ...
+    action: enums.action | None | EllipsisType = ...
+    resource: resources.resource | None | EllipsisType = ...
+    namespace: re.Pattern[str] | str | None | EllipsisType = ...
+    # TODO: get rid of clusterwide now, when we have namespace=None for this purpose (not "any").
+    clusterwide: bool | None | EllipsisType = ...
+    name: re.Pattern[str] | str | None | EllipsisType = ...
+    subresource: re.Pattern[str] | str | None | EllipsisType = ...
 
     def __call__(self, request: rendering.Request) -> bool:
         return (
@@ -477,13 +503,13 @@ def clusterwide(arg: bool = True) -> Criteria:
     return K8sCriteria(clusterwide=bool(arg))
 
 
-def namespace(arg: re.Pattern[str] | str) -> Criteria:
+def namespace(arg: re.Pattern[str] | str | None) -> Criteria:
     return K8sCriteria(namespace=arg)
 
 
-def name(arg: re.Pattern[str] | str) -> Criteria:
+def name(arg: re.Pattern[str] | str | None) -> Criteria:
     return K8sCriteria(name=arg)
 
 
-def subresource(arg: re.Pattern[str] | str) -> Criteria:
+def subresource(arg: re.Pattern[str] | str | None) -> Criteria:
     return K8sCriteria(subresource=arg)

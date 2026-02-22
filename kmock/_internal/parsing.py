@@ -15,6 +15,8 @@ class ParsedHTTP:
 
     E.g.: `get /path?q=query`.
     """
+    # Reminder: None means it was not parsed.
+    # TODO: = Ellipsis??? or keep it as None for "not parsed"?
     method: enums.method | None
     path: str | None
     params: dict[str, str] | None
@@ -35,6 +37,7 @@ class ParsedHTTP:
         # For this, the first word must be a non-verb, but if so, the whole string goes back to "s",
         # and so it returns None because the path (or "s") does not start with "/".
         # And if the verb starts with "/", it becomes a path, so it is not None either.
+        # TODO: None=>ANY
         path = parsed.path or None
         query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True) or None
         params = dict(query) if query else None
@@ -43,6 +46,7 @@ class ParsedHTTP:
 
 @attrs.frozen
 class ParsedK8s:
+    # Reminder: None means it was not parsed.
     method: enums.method | None
     action: enums.action | None
     resource: resources.resource | None

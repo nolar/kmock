@@ -28,7 +28,7 @@ def test_nonoverlapping_fields_in_http(field1: str, field2: str) -> None:
     criteria = criteria1 + criteria2
     assert getattr(criteria, field1) == HTTP_1[field1]
     assert getattr(criteria, field2) == HTTP_1[field2]
-    assert all(v is None for f, v in attrs.asdict(criteria).items() if f not in {field1, field2})
+    assert all(v is ... for f, v in attrs.asdict(criteria).items() if f not in {field1, field2})
 
 
 @pytest.mark.parametrize('field1, field2', [(f1, f2) for f1 in K8S_1 for f2 in K8S_1 if f1 != f2])
@@ -38,7 +38,7 @@ def test_nonoverlapping_fields_in_k8s(field1: str, field2: str) -> None:
     criteria = criteria1 + criteria2
     assert getattr(criteria, field1) == K8S_1[field1]
     assert getattr(criteria, field2) == K8S_1[field2]
-    assert all(v is None for f, v in attrs.asdict(criteria).items() if f not in {field1, field2})
+    assert all(v is ... for f, v in attrs.asdict(criteria).items() if f not in {field1, field2})
 
 
 @pytest.mark.parametrize('field', [f for f, v in HTTP_1.items() if not isinstance(v, dict)])
@@ -47,7 +47,7 @@ def test_compatible_scalars_in_http(field: str) -> None:
     criteria2 = HTTPCriteria(**{field: HTTP_1[field]})
     criteria = criteria1 + criteria2
     assert getattr(criteria, field) == HTTP_1[field]
-    assert all(value is None for f, value in attrs.asdict(criteria).items() if f != field)
+    assert all(value is ... for f, value in attrs.asdict(criteria).items() if f != field)
 
 
 @pytest.mark.parametrize('field', [f for f, v in K8S_1.items() if not isinstance(v, dict)])
@@ -56,7 +56,7 @@ def test_compatible_scalars_in_k8s(field: str) -> None:
     criteria2 = K8sCriteria(**{field: K8S_1[field]})
     criteria = criteria1 + criteria2
     assert getattr(criteria, field) == K8S_1[field]
-    assert all(value is None for f, value in attrs.asdict(criteria).items() if f != field)
+    assert all(value is ... for f, value in attrs.asdict(criteria).items() if f != field)
 
 
 @pytest.mark.parametrize('field', [f for f, v in HTTP_1.items() if not isinstance(v, dict)])
@@ -82,7 +82,7 @@ def test_compatible_dicts_in_http(field: str) -> None:
     criteria2 = HTTPCriteria(**{field: {'key2': 'val2', 'common': 'value'}})
     criteria = criteria1 + criteria2
     assert getattr(criteria, field) == {'key1': 'val1', 'key2': 'val2', 'common': 'value'}
-    assert all(value is None for f, value in attrs.asdict(criteria).items() if f != field)
+    assert all(value is ... for f, value in attrs.asdict(criteria).items() if f != field)
 
 
 # NB: there are no fields of type `dict` in K8sCriteria, only in HTTP.
