@@ -96,6 +96,8 @@ A :class:`kmock.params` wrapper (a dict) is checked against URL query parameters
 
 The params' values can be either strings or pre-compiled regular patterns. The patterns must match fully, not by partial inclusion. Add ``.*`` at the edges to make it a partial pattern.
 
+By convention, ``...`` aka ``Ellipsis`` as the param value means any value, but the key must be present.
+
 
 Matching HTTP request headers
 -----------------------------
@@ -124,6 +126,8 @@ Alternatively, headers can be filtered by the standartized string representation
 
 The headers' values can be either strings or pre-compiled regular patterns. The patterns must match fully, not by partial inclusion. Add ``.*`` at the edges to make it a partial pattern.
 
+By convention, ``...`` aka ``Ellipsis`` as the header value means any value, but the key must be present.
+
 
 Matching HTTP request cookies
 -----------------------------
@@ -138,6 +142,8 @@ To check the request's cookies (i.e. coming from client to server), use the :cla
         kmock[kmock.cookies({'session': '123'}] << b'hello'
 
 The cookies' values can be either strings or pre-compiled regular patterns. The patterns must match fully, not by partial inclusion. Add ``.*`` at the edges to make it a partial pattern.
+
+By convention, ``...`` aka ``Ellipsis`` as the cookie value means any value, but the key must be present.
 
 
 Matching HTTP request body
@@ -163,6 +169,9 @@ To check against the request's body decoded as UTF-8 into a string, use the :cla
         kmock[kmock.text('input1=value1&input2=value2')] << b'hello'
         kmock[kmock.text(re.compile('input1=value1&.*'))] << b'hello'
 
+``None`` means "no body/no text", i.e. that there is no payload in the request
+(``...`` aka ``Ellipsis`` means "any data" by convention, this is the default).
+
 
 Matching HTTP request JSON
 --------------------------
@@ -176,11 +185,15 @@ To check the request's JSON payload (parsed), use the :class:`kmock.data` wrappe
     async def test_http_json_data(kmock: kmock.RawHandler) -> None:
         kmock[kmock.data({'input1': 'value1', 'input2': 'value2'}] << b'hello'
 
+``None`` means "no data", i.e. that there is no payload in the request,
+or that the incoming data is JSON ``null``
+(``...`` aka ``Ellipsis`` means "any data" by convention, this is the default).
+
 
 Kubernetes criteria
 ===================
 
-Kubernetes-like requests are additionally parsed & matched for Kubernetes-specific properties (falls back to ``None`` for all relevant fields if not a Kubernetes-like request).
+Kubernetes-like requests are additionally parsed & matched for Kubernetes-specific properties (falls back to conventional ``...`` for all relevant fields if not a Kubernetes-like request).
 
 Note that in all Kubernetes examples here, we use :class:`kmock.RawHandler` instead of :class:`kmock.KubernetesScaffold` or :class:`kmock.KubernetesEmulator` (even if they are activated by default). These Kubernetes criteria work at any level of the handler out of the box — even without Kubernetes-specific behaviour implemented or activated.
 
@@ -222,7 +235,7 @@ For the so called "Core API" (the legacy of Kubernetes before the groups were in
 Matching Kubernetes actions
 ---------------------------
 
-To check for Kubernetes-specific actions, use the :class:`kmock.action` instance (a string enum;case-insensitive).
+To check for Kubernetes-specific actions, use the :class:`kmock.action` instance (a string enum; case-insensitive).
 
 Strings ``"list"``, ``"watch"``, ``"fetch"``, ``"create"``, ``"update"``, (but not ``"delete"``) are automatically recognized as Kubernetes actions and require no wrappers. Note that ``"delete"``, when used as an unwrapped string, is recognized as the HTTP method, not the Kubernetes action — because of the unresolvable name conflict — always wrap this particular Kubernetes action.
 
@@ -280,6 +293,8 @@ To check for Kubernetes namespaces in the URLs (or in the metadata for the objec
         resp = await kmock.get('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples')
         assert resp.status == 200
 
+``None`` means "no namespace", e.g. as in cluster-wide requests, resource discovery requests, or non-kubernetes requests (``...`` aka ``Ellipsis`` means "any namespace" by convention, this is the default).
+
 To check for the cluster-wide or namespaced request regardless of the specific namespace name, use the :func:`kmock.clusterwide` function. ``clusterwide(True)`` matches against cluster-wide requests only (no namespace), ``clusterwide(False)`` matches against namespaced requests only (regardless of the namespace name itself):
 
 .. code-block:: python
@@ -316,6 +331,8 @@ To check for individual names of Kubernetes resource objects being requested or 
         resp = await kmock.delete('/apis/kopf.dev/v1/kopfexamples/example1')
         assert resp.status == 200
 
+``None`` means no name, e.g. as in listing requests, resource discovery requests, or non-kubernetes requests (``...`` aka ``Ellipsis`` means "any name" by convention, this is the default).
+
 
 Matching Kubernetes sub-resources
 ---------------------------------
@@ -332,6 +349,8 @@ To check for the Kubernetes sub-resource name, use the :func:`kmock.subresource`
 
         resp = await kmock.get('/api/v1/replicasets/example1/scale')
         assert resp.status == 200
+
+``None`` means "no subresource", e.g. as in direct resource requests, non-object-related requests, or non-kubernetes requests (``...`` aka ``Ellipsis`` means "any subresource" by convention, this is the default).
 
 
 Matching priorities

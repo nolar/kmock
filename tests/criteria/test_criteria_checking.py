@@ -146,7 +146,7 @@ def test_regexps_fullmatch_never_partials() -> None:
 @pytest.mark.parametrize('val', [None, True, False, 'str', {'key': 'val'}, StringEnum.A])
 def test_catchall(val: Any) -> None:
     criteria = SampleCriteria()
-    assert criteria._check(None, val)
+    assert criteria._check(..., val)
 
 
 @pytest.mark.parametrize('pat', [
@@ -209,6 +209,7 @@ def test_mismatching(pat: Any, val: Any) -> None:
 
 # Some cases that were not included in the pairs above:
 @pytest.mark.parametrize('pat, val', [
+    (None, object()),
     (True, object()),
     (False, object()),
 ])

@@ -5,6 +5,7 @@ import json
 import re
 import sys
 import traceback
+from types import EllipsisType
 from typing import Any, AsyncIterator
 
 import aiohttp.web
@@ -171,12 +172,16 @@ class KubernetesScaffold(apps.RawHandler):
         for payload in self._payloads:  # implicitly declared
             for filter in payload._walk(dsl.Filter):
                 if isinstance(filter.criteria, filtering.K8sCriteria):
-                    if filter.criteria.resource is not None:
-                        resource = filter.criteria.resource
-                        if resource.group is not None and resource.version is not None:
-                            name = resource.plural
-                            if name is not None and name.lower() == name:
-                                result.add(resource)
+                    maybe_resource = filter.criteria.resource
+                    if maybe_resource is not None and not isinstance(maybe_resource, EllipsisType):
+                        group = maybe_resource.group
+                        version = maybe_resource.version
+                        group_ok = group is not None and not isinstance(group, EllipsisType)
+                        version_ok = version is not None and not isinstance(version, EllipsisType)
+                        if group_ok and version_ok:
+                            name = maybe_resource.plural
+                            if name is not None and not isinstance(name, EllipsisType) and name.lower() == name:
+                                result.add(maybe_resource)
         return list(result)
 
     # e.g. /
@@ -218,11 +223,15 @@ class KubernetesScaffold(apps.RawHandler):
             group: {
                 resource.version
                 for resource in resources
-                if resource.version is not None and resource.group == group
+                if not isinstance(resource.version, EllipsisType)
+                if resource.version is not None
+                if resource.group == group
             }
             for group in {
                 resource.group for resource in resources
-                if resource.group is not None and resource.group != ''  # excluding the core v1
+                if not isinstance(resource.group, EllipsisType)
+                if resource.group is not None
+                if resource.group != ''  # excluding the core v1
             }
         }
         return {

@@ -35,38 +35,38 @@ async def test_forced_data(src: Any, arg: Any) -> None:
     criteria = Criteria.guess(src.data(arg))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.data == arg
-    assert criteria.params is None
-    assert criteria.headers is None
-    assert criteria.cookies is None
-    assert criteria.method is None
-    assert criteria.path is None
+    assert criteria.params is ...
+    assert criteria.headers is ...
+    assert criteria.cookies is ...
+    assert criteria.method is ...
+    assert criteria.path is ...
 
 
 async def test_forced_params(src: Any) -> None:
     criteria = Criteria.guess(src.params({'Content-Type': 'application/json'}))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.params == {'Content-Type': 'application/json'}
-    assert criteria.headers is None
-    assert criteria.cookies is None
-    assert criteria.data is None
+    assert criteria.headers is ...
+    assert criteria.cookies is ...
+    assert criteria.data is ...
 
 
 async def test_forced_headers(src: Any) -> None:
     criteria = Criteria.guess(src.headers({'NotEvenLikeAHeader': 'blah'}))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.headers == {'NotEvenLikeAHeader': 'blah'}
-    assert criteria.cookies is None
-    assert criteria.params is None
-    assert criteria.data is None
+    assert criteria.cookies is ...
+    assert criteria.params is ...
+    assert criteria.data is ...
 
 
 async def test_forced_cookies(src: Any) -> None:
     criteria = Criteria.guess(src.cookies({'session': 'sid'}))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.cookies == {'session': 'sid'}
-    assert criteria.headers is None
-    assert criteria.params is None
-    assert criteria.data is None
+    assert criteria.headers is ...
+    assert criteria.params is ...
+    assert criteria.data is ...
 
 
 async def test_forced_method_enum(src: Any) -> None:
@@ -86,63 +86,63 @@ async def test_forced_path(src: Any) -> None:
     criteria = Criteria.guess(src.path('/'))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.path == '/'
-    assert criteria.text is None
-    assert criteria.body is None
+    assert criteria.text is ...
+    assert criteria.body is ...
 
 
 async def test_forced_text(src: Any) -> None:
     criteria = Criteria.guess(src.text('/'))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.text == '/'
-    assert criteria.body is None
-    assert criteria.path is None
+    assert criteria.body is ...
+    assert criteria.path is ...
 
 
 async def test_forced_body(src: Any) -> None:
     criteria = Criteria.guess(src.body(b'/'))
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.body == b'/'
-    assert criteria.text is None
-    assert criteria.path is None
+    assert criteria.text is ...
+    assert criteria.path is ...
 
 
 async def test_forced_clusterwide(src: Any) -> None:
     criteria = Criteria.guess(src.clusterwide())
     assert isinstance(criteria, K8sCriteria)
     assert criteria.clusterwide == True
-    assert criteria.namespace is None
+    assert criteria.namespace is ...
 
 
 async def test_forced_namespaced(src: Any) -> None:
     criteria = Criteria.guess(src.clusterwide(False))
     assert isinstance(criteria, K8sCriteria)
     assert criteria.clusterwide == False
-    assert criteria.namespace is None
+    assert criteria.namespace is ...
 
 
 async def test_forced_namespace(src: Any) -> None:
     criteria = Criteria.guess(src.namespace('ns1'))
     assert isinstance(criteria, K8sCriteria)
     assert criteria.namespace == 'ns1'
-    assert criteria.subresource is None
-    assert criteria.resource is None
-    assert criteria.name is None
+    assert criteria.subresource is ...
+    assert criteria.resource is ...
+    assert criteria.name is ...
 
 
 async def test_forced_name(src: Any) -> None:
     criteria = Criteria.guess(src.name('example-pod'))
     assert isinstance(criteria, K8sCriteria)
     assert criteria.name == 'example-pod'
-    assert criteria.subresource is None
-    assert criteria.resource is None
+    assert criteria.subresource is ...
+    assert criteria.resource is ...
 
 
 async def test_forced_subresource(src: Any) -> None:
     criteria = Criteria.guess(src.subresource('status'))
     assert isinstance(criteria, K8sCriteria)
     assert criteria.subresource == 'status'
-    assert criteria.resource is None
-    assert criteria.name is None
+    assert criteria.resource is ...
+    assert criteria.name is ...
 
 
 async def test_forced_action(src: Any) -> None:
@@ -150,15 +150,15 @@ async def test_forced_action(src: Any) -> None:
     assert isinstance(criteria, K8sCriteria)
     assert isinstance(criteria.action, action)
     assert criteria.action == action.LIST
-    assert criteria.resource is None
-    assert criteria.name is None
+    assert criteria.resource is ...
+    assert criteria.name is ...
 
 
 async def test_forced_resource(src: Any) -> None:
     criteria = Criteria.guess(src.resource('pods.v1'))
     assert isinstance(criteria, K8sCriteria)
-    assert criteria.resource is not None
+    assert criteria.resource is not ...
     assert criteria.resource.group == ''
     assert criteria.resource.version == 'v1'
     assert criteria.resource.plural == 'pods'
-    assert criteria.name is None
+    assert criteria.name is ...
