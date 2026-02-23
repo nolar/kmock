@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from kmock import KubernetesEmulator, KubernetesError, clusterwide, namespace, resource
+from kmock import KubernetesEmulator, KubernetesError, namespace, resource
 
 pytestmark = pytest.mark.kmock(cls=KubernetesEmulator)
 
@@ -13,14 +13,14 @@ pytestmark = pytest.mark.kmock(cls=KubernetesEmulator)
 def _nondiscoverable(kmock: KubernetesEmulator) -> None:
     # Noisy non-discoverable partial resource filters — to increase the branch coverage.
     # Only full 3-component resource identifiers are visible to the API discovery.
-    kmock[resource(version='v1', plural='unrelated'), clusterwide()] << None
-    kmock[resource(group='kopf.dev', plural='unrelated'), clusterwide()] << None
-    kmock[resource(group='kopf.dev', version='v1'), clusterwide()] << None
+    kmock[resource(version='v1', plural='unrelated'), namespace(None)] << None
+    kmock[resource(group='kopf.dev', plural='unrelated'), namespace(None)] << None
+    kmock[resource(group='kopf.dev', version='v1'), namespace(None)] << None
     kmock[resource(version='v1', plural='unrelated'), namespace('ns')] << None
     kmock[resource(group='kopf.dev', plural='unrelated'), namespace('ns')] << None
     kmock[resource(group='kopf.dev', version='v1'), namespace('ns')] << None
-    kmock[resource(group='', plural='unrelated'), clusterwide()] << None
-    kmock[resource(group='', version='v1'), clusterwide()] << None
+    kmock[resource(group='', plural='unrelated'), namespace(None)] << None
+    kmock[resource(group='', version='v1'), namespace(None)] << None
     kmock[resource(group='', plural='unrelated'), namespace('ns')] << None
     kmock[resource(group='', version='v1'), namespace('ns')] << None
 

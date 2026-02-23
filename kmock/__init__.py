@@ -6,9 +6,8 @@ from ._internal.dns import AiohttpInterceptor, ResolvedHost, ResolverFilter, \
 from ._internal.dsl import AndGroup, Chained, Exclusion, Filter, Group, OrGroup, \
                            Priority, Reaction, Root, Slicer, Stream, View
 from ._internal.enums import action, method
-from ._internal.filtering import BoolCriteria, Criteria, Criterion, DictCriteria, EventCriteria, \
-                                 FnCriteria, FutureCriteria, HTTPCriteria, K8sCriteria, \
-                                 StrCriteria, clusterwide, name, namespace, subresource
+from ._internal.filtering import BoolCriteria, Criteria, Criterion, DictCriteria, EventCriteria, FnCriteria, \
+                                 FutureCriteria, HTTPCriteria, K8sCriteria, StrCriteria, name, namespace, subresource
 from ._internal.k8s import KubernetesEmulator, KubernetesEndpointNotFoundError, KubernetesError, \
                            KubernetesNotFoundError, KubernetesObjectNotFoundError, \
                            KubernetesResourceNotFoundError, KubernetesScaffold
@@ -44,7 +43,6 @@ __all__ = [
     'subresource',
     'name',
     'namespace',
-    'clusterwide',
     'View',
     'Root',
     'Group',

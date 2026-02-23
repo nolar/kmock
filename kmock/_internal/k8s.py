@@ -562,8 +562,6 @@ class KubernetesEmulator(KubernetesScaffold):
     ) -> bool:
         # NB: if the request is cluster-wide, we return ALL objects of ALL namespaces,
         # not just the cluster-wide objects (as for the `kubectl get --all` CLI option).
-        # TODO? redesign clusterwide as namespace=='', not None! None means ANY.
-        #       this should simplify typing in many places.
         namespace_ok = (
             namespace == request.namespace if strict else
             (request.namespace is None or namespace == request.namespace)

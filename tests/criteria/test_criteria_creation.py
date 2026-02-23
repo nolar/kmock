@@ -28,14 +28,12 @@ def test_k8s_criteria_creation() -> None:
     criteria = K8sCriteria(
         action=action.CREATE,
         resource=resource('', 'v1', 'pods'),
-        clusterwide=False,
         namespace='ns1',
         name='n1',
         subresource='status',
     )
     assert criteria.action == action.CREATE
     assert criteria.resource == resource('', 'v1', 'pods')
-    assert criteria.clusterwide == False
     assert criteria.namespace == 'ns1'
     assert criteria.name == 'n1'
     assert criteria.subresource == 'status'

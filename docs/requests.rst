@@ -295,24 +295,7 @@ To check for Kubernetes namespaces in the URLs (or in the metadata for the objec
 
 ``None`` means "no namespace", e.g. as in cluster-wide requests, resource discovery requests, or non-kubernetes requests (``...`` aka ``Ellipsis`` means "any namespace" by convention, this is the default).
 
-To check for the cluster-wide or namespaced request regardless of the specific namespace name, use the :func:`kmock.clusterwide` function. ``clusterwide(True)`` matches against cluster-wide requests only (no namespace), ``clusterwide(False)`` matches against namespaced requests only (regardless of the namespace name itself):
-
-.. code-block:: python
-
-    import kmock
-
-    async def test_kubernetes_clusterwide_namespaced_filters(kmock: kmock.RawHandler) -> None:
-        kmock[kmock.clusterwide()] << 200          # only clusterwide
-        kmock[kmock.clusterwide(True)] << 200      # only clusterwide
-        kmock[kmock.clusterwide(False)] << 200     # only namespaced
-
-        # Make a cluster-wide request:
-        resp = await kmock.get('/apis/kopf.dev/v1/kopfexamples')
-        assert resp.status == 200
-
-        # Make a namespaced request:
-        resp = await kmock.get('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples')
-        assert resp.status == 200
+To check against any namespace, but nevertheless namespaced requests, use ``kmock.namespace(re.compile('.*'))``.
 
 
 Matching Kubernetes object names

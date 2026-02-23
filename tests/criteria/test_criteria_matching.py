@@ -352,24 +352,3 @@ def test_subresource_matching(requested: Any, pattern: Any, expected: bool) -> N
     criteria = K8sCriteria(subresource=pattern)
     result = criteria(request)
     assert result == expected
-
-
-@pytest.mark.parametrize('requested, pattern, expected', [
-    (None, ..., True),
-    (None, None, True),
-    (None, True, False),
-    (None, False, False),
-    (True, ..., True),
-    (True, None, False),
-    (True, True, True),
-    (True, False, False),
-    (False, ..., True),
-    (False, None, False),
-    (False, True, False),
-    (False, False, True),
-])
-def test_clusterwide_matching(requested: Any, pattern: Any, expected: bool) -> None:
-    request = Request(clusterwide=requested)
-    criteria = K8sCriteria(clusterwide=pattern)
-    result = criteria(request)
-    assert result == expected

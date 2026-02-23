@@ -106,20 +106,6 @@ async def test_forced_body(src: Any) -> None:
     assert criteria.path is ...
 
 
-async def test_forced_clusterwide(src: Any) -> None:
-    criteria = Criteria.guess(src.clusterwide())
-    assert isinstance(criteria, K8sCriteria)
-    assert criteria.clusterwide == True
-    assert criteria.namespace is ...
-
-
-async def test_forced_namespaced(src: Any) -> None:
-    criteria = Criteria.guess(src.clusterwide(False))
-    assert isinstance(criteria, K8sCriteria)
-    assert criteria.clusterwide == False
-    assert criteria.namespace is ...
-
-
 async def test_forced_namespace(src: Any) -> None:
     criteria = Criteria.guess(src.namespace('ns1'))
     assert isinstance(criteria, K8sCriteria)

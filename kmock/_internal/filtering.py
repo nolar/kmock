@@ -393,8 +393,6 @@ class K8sCriteria(OptiCriteria):
     action: enums.action | None | EllipsisType = ...
     resource: resources.resource | None | EllipsisType = ...
     namespace: re.Pattern[str] | str | None | EllipsisType = ...
-    # TODO: get rid of clusterwide now, when we have namespace=None for this purpose (not "any").
-    clusterwide: bool | None | EllipsisType = ...
     name: re.Pattern[str] | str | None | EllipsisType = ...
     subresource: re.Pattern[str] | str | None | EllipsisType = ...
 
@@ -405,7 +403,6 @@ class K8sCriteria(OptiCriteria):
             and self._check(self.action, request.action)
             and self._check(self.resource, request.resource)
             and self._check(self.subresource, request.subresource)
-            and self._check(self.clusterwide, request.clusterwide)
             and self._check(self.namespace, request.namespace, glob=True)
             and self._check(self.name, request.name, glob=True)
         )
@@ -476,13 +473,6 @@ class FutureCriteria(Criteria):
 
 # Some non-boxed shortcuts with values of specific purpose. They are not worth making them
 # into separate class(es) in boxes.py, but are still needed for DSL completeness.
-# TODO: Remake into classes — e.g. for kmock.objects[kmock.namespace('ns1')]
-#       in addition to kmock.objects[kmock.resource('v1/pods')]
-#  OR: keep those indexes positional?
-def clusterwide(arg: bool = True) -> Criteria:
-    return K8sCriteria(clusterwide=bool(arg))
-
-
 def namespace(arg: re.Pattern[str] | str | None) -> Criteria:
     return K8sCriteria(namespace=arg)
 

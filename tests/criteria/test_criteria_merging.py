@@ -5,8 +5,8 @@ from kmock import HTTPCriteria, K8sCriteria, action, method, resource
 
 RESOURCE1 = resource('', 'v1', 'pods')
 RESOURCE2 = resource('', 'v1', 'deployments')
-K8S_1 = dict(action=action.FETCH, resource=RESOURCE1, clusterwide=True, namespace='ns1', name='n1', subresource='sub1')
-K8S_2 = dict(action=action.WATCH, resource=RESOURCE2, clusterwide=False, namespace='ns2', name='n2', subresource='sub2')
+K8S_1 = dict(action=action.FETCH, resource=RESOURCE1, namespace='ns1', name='n1', subresource='sub1')
+K8S_2 = dict(action=action.WATCH, resource=RESOURCE2, namespace='ns2', name='n2', subresource='sub2')
 HTTP_1 = dict(method=method.GET, path='/path1', text='hello', body=b'hello', data={'key': 'val'}, headers={'X': 'h1'})
 HTTP_2 = dict(method=method.POST, path='/path2', text='world', body=b'world', data={'key': 'alt'}, headers={'X': 'h2'})
 # Cookies, params, headers, and even data dicts are all the same, so we can skip them but one — for brevity.
