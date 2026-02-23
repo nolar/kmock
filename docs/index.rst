@@ -10,8 +10,8 @@ Usually, the developers populate the server with Kubernetes resources, raw reque
 
 KMock runs well with looptime_, the time dilation/contraction library for asyncio & pytest.
 
-.. _kopf: https://kopf.readthedocs.io/
-.. _looptime: https://github.com/nolar/looptime
+.. _kopf: https://kopf.dev/
+.. _looptime: https://looptime.readthedocs.io/
 
 .. toctree::
    :maxdepth: 2
