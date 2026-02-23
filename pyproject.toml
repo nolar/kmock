@@ -79,6 +79,11 @@ lint = [
     "mypy==1.19.0",
     "pre-commit",
 ]
+dev = [
+    {include-group = "docs"},
+    {include-group = "lint"},
+    {include-group = "test"},
+]
 
 [tool.setuptools_scm]
 version_file = "kmock/_version.py"
