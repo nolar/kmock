@@ -15,6 +15,7 @@ class ParsedHTTP:
 
     E.g.: `get /path?q=query`.
     """
+    # Reminder: None means it was not parsed, later translates to "any value".
     method: enums.method | None
     path: str | None
     params: dict[str, str] | None
@@ -43,6 +44,7 @@ class ParsedHTTP:
 
 @attrs.frozen
 class ParsedK8s:
+    # Reminder: None means it was not parsed, later translates to "any value".
     method: enums.method | None
     action: enums.action | None
     resource: resources.resource | None

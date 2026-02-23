@@ -428,7 +428,6 @@ class RawHandler(dsl.Root):
     params = staticmethod(boxes.params)
     cookies = staticmethod(boxes.cookies)
     headers = staticmethod(boxes.headers)
-    clusterwide = staticmethod(filtering.clusterwide)
     namespace = staticmethod(filtering.namespace)
     name = staticmethod(filtering.name)
     subresource = staticmethod(filtering.subresource)

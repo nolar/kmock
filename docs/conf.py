@@ -96,7 +96,7 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
     from types import GenericAlias
     from typing import Union
 
-    # Rare cases like clusterwide(…), namespace(…), etc, which return Criteria() instances.
+    # Rare cases like namespace(…), etc, which return Criteria() instances.
     # Alternative: remake them to classes with the overridden __new__(), which returns K8sCriteria.
     if what == 'class' and isinstance(obj, types.FunctionType):
         if not name.startswith('_') and '.' not in obj.__qualname__:

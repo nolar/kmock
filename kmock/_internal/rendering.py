@@ -238,9 +238,6 @@ class Request:
     action: enums.action | None = None
     resource: resources.resource | None = None
     namespace: str | None = None  # None means cluster-wide (for requests)
-    # TODO: for specific requests, namespace is not a pattern, so None means cluster wide.
-    #       -> make .clusterwide a property for assertions only (=self.namespace is None)
-    clusterwide: bool | None = None
     name: str | None = None
     subresource: str | None = None
 
@@ -291,7 +288,6 @@ class Request:
             data=data, body=body, text=text,
             action=action, resource=resource, namespace=k8s.namespace,
             name=k8s.name, subresource=k8s.subresource,
-            clusterwide=None if k8s is None or k8s.group is None else bool(k8s.namespace is None),
         )
         return request
 

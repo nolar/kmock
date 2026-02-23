@@ -130,7 +130,6 @@ async def test_k8s_url_with_params_is_parsed_the_same(payload: aiohttp.StreamRea
     assert request1.resource == request2.resource
     assert request1.resource == request2.resource
     assert request1.namespace == request2.namespace
-    assert request1.clusterwide == request2.clusterwide
     assert request1.subresource == request2.subresource
     assert request1.name == request2.name
 
@@ -182,30 +181,29 @@ async def test_k8s_apis_resource_detection(payload: aiohttp.StreamReader, url: s
     assert request.resource.plural == 'kopfexamples'
 
 
-@pytest.mark.parametrize('url, clusterwide, namespace, name, subresource', [
-    ('/api/v1/pods', True, None, None, None),
-    ('/api/v1/pods/n1', True, None, 'n1', None),
-    ('/api/v1/pods/n1/status', True, None, 'n1', 'status'),
-    ('/api/v1/pods/n1/sub/res', True, None, 'n1', 'sub/res'),
-    ('/api/v1/namespaces/ns1/pods', False, 'ns1', None, None),
-    ('/api/v1/namespaces/ns1/pods/n1', False, 'ns1', 'n1', None),
-    ('/api/v1/namespaces/ns1/pods/n1/status', False, 'ns1', 'n1', 'status'),
-    ('/api/v1/namespaces/ns1/pods/n1/sub/res', False, 'ns1', 'n1', 'sub/res'),
-    ('/apis/kopf.dev/v1/kopfexamples', True, None, None, None),
-    ('/apis/kopf.dev/v1/kopfexamples/n1', True, None, 'n1', None),
-    ('/apis/kopf.dev/v1/kopfexamples/n1/status', True, None, 'n1', 'status'),
-    ('/apis/kopf.dev/v1/kopfexamples/n1/sub/res', True, None, 'n1', 'sub/res'),
-    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples', False, 'ns1', None, None),
-    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1', False, 'ns1', 'n1', None),
-    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1/status', False, 'ns1', 'n1', 'status'),
-    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1/sub/res', False, 'ns1', 'n1', 'sub/res'),
+@pytest.mark.parametrize('url, namespace, name, subresource', [
+    ('/api/v1/pods', None, None, None),
+    ('/api/v1/pods/n1', None, 'n1', None),
+    ('/api/v1/pods/n1/status', None, 'n1', 'status'),
+    ('/api/v1/pods/n1/sub/res', None, 'n1', 'sub/res'),
+    ('/api/v1/namespaces/ns1/pods', 'ns1', None, None),
+    ('/api/v1/namespaces/ns1/pods/n1', 'ns1', 'n1', None),
+    ('/api/v1/namespaces/ns1/pods/n1/status', 'ns1', 'n1', 'status'),
+    ('/api/v1/namespaces/ns1/pods/n1/sub/res', 'ns1', 'n1', 'sub/res'),
+    ('/apis/kopf.dev/v1/kopfexamples', None, None, None),
+    ('/apis/kopf.dev/v1/kopfexamples/n1', None, 'n1', None),
+    ('/apis/kopf.dev/v1/kopfexamples/n1/status', None, 'n1', 'status'),
+    ('/apis/kopf.dev/v1/kopfexamples/n1/sub/res', None, 'n1', 'sub/res'),
+    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples', 'ns1', None, None),
+    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1', 'ns1', 'n1', None),
+    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1/status', 'ns1', 'n1', 'status'),
+    ('/apis/kopf.dev/v1/namespaces/ns1/kopfexamples/n1/sub/res', 'ns1', 'n1', 'sub/res'),
 ])
-async def test_k8s_locality(payload: aiohttp.StreamReader, url: str, clusterwide: bool,
+async def test_k8s_locality(payload: aiohttp.StreamReader, url: str,
                             namespace: str | None, name: str | None, subresource: str | None) -> None:
     payload.feed_eof()
     raw = make_mocked_request('GET', url, payload=payload)
     request = await Request._parse(raw)
-    assert request.clusterwide == clusterwide
     assert request.namespace == namespace
     assert request.subresource == subresource
     assert request.name == name
@@ -263,7 +261,6 @@ async def test_k8s_absent_for_http(payload: aiohttp.StreamReader) -> None:
     assert request.action is None
     assert request.name is None
     assert request.subresource is None
-    assert request.clusterwide is None
     assert request.namespace is None
     assert request.resource is None
     assert request.resource is None

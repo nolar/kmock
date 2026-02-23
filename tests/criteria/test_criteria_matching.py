@@ -123,8 +123,9 @@ def test_action_matching(action_: action) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    ('/', ..., True),
+    ('/', None, False),
     ('', '/', False),
-    ('/', None, True),
     ('/', '/', True),
     ('/path', '/', False),
     ('/', '/path', False),
@@ -145,11 +146,16 @@ def test_path_matching(requested: str, pattern: Any, expected: bool) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
-    ({'q': 'query', 'extra': ''}, None, True),
+    ({'q': 'query', 'extra': ''}, ..., True),
+    ({'q': 'query', 'extra': ''}, None, False),
     ({'q': 'query', 'extra': ''}, {'q': 'query'}, True),
+    ({'q': 'query'}, {'q': ...}, True),
+    ({'q': 'query'}, {'q': None}, False),
     ({'q': 'query'}, {'q': 'query'}, True),
     ({'q': 'query'}, {'q': 'wrong'}, False),
     ({'q': 'query'}, {}, True),
+    ({}, {'q': ...}, False),
+    ({}, {'q': None}, False),
     ({}, {'q': 'query'}, False),
 ])
 def test_params_matching(requested: dict[str, str], pattern: Any, expected: bool) -> None:
@@ -160,11 +166,16 @@ def test_params_matching(requested: dict[str, str], pattern: Any, expected: bool
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
-    ({'Content-Type': 'text/plain', 'extra': ''}, None, True),
+    ({'Content-Type': 'text/plain', 'extra': ''}, ..., True),
+    ({'Content-Type': 'text/plain', 'extra': ''}, None, False),
     ({'Content-Type': 'text/plain', 'extra': ''}, {'Content-Type': 'text/plain'}, True),
+    ({'Content-Type': 'text/plain'}, {'Content-Type': ...}, True),
+    ({'Content-Type': 'text/plain'}, {'Content-Type': None}, False),
     ({'Content-Type': 'text/plain'}, {'Content-Type': 'text/plain'}, True),
     ({'Content-Type': 'text/plain'}, {'Content-Type': 'application/json'}, False),
     ({'Content-Type': 'text/plain'}, {}, True),
+    ({}, {'Content-Type': ...}, False),
+    ({}, {'Content-Type': None}, False),
     ({}, {'Content-Type': 'text/plain'}, False),
 ])
 def test_headers_matching(requested: dict[str, str], pattern: Any, expected: bool) -> None:
@@ -175,11 +186,16 @@ def test_headers_matching(requested: dict[str, str], pattern: Any, expected: boo
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
-    ({'session': 'sid', 'extra': ''}, None, True),
+    ({'session': 'sid', 'extra': ''}, ..., True),
+    ({'session': 'sid', 'extra': ''}, None, False),
     ({'session': 'sid', 'extra': ''}, {'session': 'sid'}, True),
+    ({'session': 'sid'}, {'session': ...}, True),
+    ({'session': 'sid'}, {'session': None}, False),
     ({'session': 'sid'}, {'session': 'sid'}, True),
     ({'session': 'sid'}, {'session': 'some-other-sid'}, False),
     ({'session': 'sid'}, {}, True),
+    ({}, {'session': ...}, False),
+    ({}, {'session': None}, False),
     ({}, {'session': 'sid'}, False),
 ])
 def test_cookies_matching(requested: dict[str, str], pattern: Any, expected: bool) -> None:
@@ -190,14 +206,20 @@ def test_cookies_matching(requested: dict[str, str], pattern: Any, expected: boo
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
     (None, None, True),
     (None, {}, False),
     (None, [], False),
     ({'key': 'val'}, {}, True),
     ({'key': 'val'}, {'key': 'val'}, True),
     ({'key': 'val'}, {'key': 'bad'}, False),
-    ({'key': 'val', 'extra': ''}, None, True),
+    ({'key': 'val', 'extra': ''}, ..., True),
+    ({'key': 'val', 'extra': ''}, None, False),
+    ({'key': 'val', 'extra': ''}, {'key': ...}, True),
+    ({'key': 'val', 'extra': ''}, {'key': None}, False),
     ({'key': 'val', 'extra': ''}, {'key': 'val'}, True),
+    ({}, {'key': ...}, False),
+    ({}, {'key': None}, False),
     ({}, {'key': 'val'}, False),
 ])
 def test_data_matching(requested: Any, pattern: Any, expected: bool) -> None:
@@ -208,11 +230,14 @@ def test_data_matching(requested: Any, pattern: Any, expected: bool) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
+    ('hello', ..., True),
     (None, None, True),
     (None, 'hello', False),
-    ('hello', None, True),
+    ('hello', None, False),
     ('hello', 'hello', True),
     ('hello', '', False),
+    ('', None, False),
     ('', 'hello', False),
     ('hello', re.compile('hell'), False),
     ('hello', re.compile('he.*'), True),
@@ -225,11 +250,14 @@ def test_text_matching(requested: Any, pattern: Any, expected: bool) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
+    (b'hello', ..., True),
     (None, None, True),
     (None, b'hello', False),
-    (b'hello', None, True),
+    (b'hello', None, False),
     (b'hello', b'hello', True),
     (b'hello', b'', False),
+    (b'', None, False),
     (b'', b'hello', False),
     (b'hello', re.compile(b'hell'), False),
     (b'hello', re.compile(b'he.*'), True),
@@ -242,9 +270,11 @@ def test_body_matching(requested: Any, pattern: Any, expected: bool) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
     (None, None, True),
     (None, resource(), False),
-    (SampleResource('', 'v1', 'pods'), None, True),
+    (SampleResource('', 'v1', 'pods'), ..., True),
+    (SampleResource('', 'v1', 'pods'), None, False),
     (SampleResource('', 'v1', 'pods'), resource('', 'v1', 'pods'), True),
     (SampleResource('', 'v1', 'pods'), resource('', 'v1', 'jobs'), False),
     (SampleResource('kopf.dev', 'v1', 'pods'), resource('', 'v1', 'pods'), False),
@@ -261,9 +291,11 @@ def test_resource_matching(requested: Any, pattern: Any, expected: bool) -> None
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
     (None, None, True),
     (None, 'ns', False),
-    ('ns', None, True),
+    ('ns', ..., True),
+    ('ns', None, False),
     ('ns', 'ns', True),
     ('ns', 'n*', True),
     ('ns', 'n?', True),
@@ -281,9 +313,11 @@ def test_namespace_matching(requested: Any, pattern: Any, expected: bool) -> Non
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
     (None, None, True),
     (None, 'name', False),
-    ('name', None, True),
+    ('name', ..., True),
+    ('name', None, False),
     ('name', 'name', True),
     ('name', 'nam*', True),
     ('name', 'nam?', True),
@@ -301,9 +335,11 @@ def test_name_matching(requested: Any, pattern: Any, expected: bool) -> None:
 
 
 @pytest.mark.parametrize('requested, pattern, expected', [
+    (None, ..., True),
     (None, None, True),
     (None, 'status', False),
-    ('status', None, True),
+    ('status', ..., True),
+    ('status', None, False),
     ('status', 'status', True),
     ('status', 'replicas', False),
     ('STATUS', 'status', False),
@@ -314,23 +350,5 @@ def test_name_matching(requested: Any, pattern: Any, expected: bool) -> None:
 def test_subresource_matching(requested: Any, pattern: Any, expected: bool) -> None:
     request = Request(subresource=requested)
     criteria = K8sCriteria(subresource=pattern)
-    result = criteria(request)
-    assert result == expected
-
-
-@pytest.mark.parametrize('requested, pattern, expected', [
-    (None, None, True),
-    (None, True, False),
-    (None, False, False),
-    (True, None, True),
-    (True, True, True),
-    (True, False, False),
-    (False, None, True),
-    (False, True, False),
-    (False, False, True),
-])
-def test_clusterwide_matching(requested: Any, pattern: Any, expected: bool) -> None:
-    request = Request(clusterwide=requested)
-    criteria = K8sCriteria(clusterwide=pattern)
     result = criteria(request)
     assert result == expected

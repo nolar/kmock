@@ -27,7 +27,7 @@ def test_method_enum_guessing(method_: method) -> None:
     criteria = Criteria.guess(method_)
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.method == method_
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'method'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'method'})
 
 
 @pytest.mark.parametrize('arg, method_', (
@@ -42,7 +42,7 @@ def test_method_str_guessing(arg: str, method_: method) -> None:
     criteria = Criteria.guess(arg)
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.method == method_
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'method'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'method'})
 
 
 @pytest.mark.parametrize('action_', list(action))
@@ -50,7 +50,7 @@ def test_action_enum_guessing(action_: action) -> None:
     criteria = Criteria.guess(action_)
     assert isinstance(criteria, K8sCriteria)
     assert criteria.action == action_
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'action'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'action'})
 
 
 # 'delete' is recognized as an HTTP method, not as a K8s action, so we exclude it for now.
@@ -66,7 +66,7 @@ def test_action_str_guessing(arg: str, action_: action) -> None:
     criteria = Criteria.guess(arg)
     assert isinstance(criteria, K8sCriteria)
     assert criteria.action == action_
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'action'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'action'})
 
 
 @pytest.mark.parametrize('arg', ['bloop /', 'bloop kopf.dev/v1/kopfexamples'])
@@ -86,7 +86,7 @@ def test_selectable_protocol_guessing(arg: Selectable, expected: resource) -> No
     criteria = Criteria.guess(arg)
     assert isinstance(criteria, K8sCriteria)
     assert criteria.resource == expected
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'resource'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'resource'})
 
 
 @pytest.mark.parametrize('arg', [
@@ -97,7 +97,7 @@ def test_path_guessing(arg: str | re.Pattern[str]) -> None:
     criteria = Criteria.guess(arg)
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.path == arg
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'path'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'path'})
 
 
 def test_text_guessing() -> None:
@@ -110,7 +110,7 @@ def test_body_guessing() -> None:
     criteria = Criteria.guess(b'hello')
     assert isinstance(criteria, HTTPCriteria)
     assert criteria.body == b'hello'
-    assert not attrs.asdict(criteria, filter=lambda a, v: v is not None and a.name not in {'body'})
+    assert not attrs.asdict(criteria, filter=lambda a, v: v is not ... and a.name not in {'body'})
 
 
 def test_dict_guessing() -> None:
