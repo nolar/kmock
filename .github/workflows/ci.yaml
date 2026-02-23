@@ -20,7 +20,7 @@ jobs:
           python-version: "3.14"
       - run: pip install --group lint -e .
       - run: pre-commit run --all-files
-      - run: mypy kmock --strict
+      - run: mypy
 
   unit-tests:
     strategy:

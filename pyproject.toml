@@ -76,7 +76,7 @@ lint = [
     {include-group = "test"},
     "isort",
     "import-linter",
-    "mypy==1.19.0",
+    "mypy==1.19.1",
     "pre-commit",
 ]
 
@@ -84,6 +84,10 @@ lint = [
 version_file = "kmock/_version.py"
 
 [tool.mypy]
+strict = true
+packages = ["kmock"]
+python_version = "3.10"
+exclude_gitignore = true
 warn_unused_configs = true
 ignore_missing_imports = true
 
