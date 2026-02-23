@@ -1,6 +1,6 @@
 import pytest
 
-from kmock._internal.k8s_dicts import patch_dict
+from kmock._internal.dicts import patch_dict
 
 # NB: This is an internal (non-published) routine, but we still test it
 # to make sure the patching logic works perfectly nice wherever it is used.
@@ -66,3 +66,8 @@ def test_patch_ordering():
     p = {'other': 'other', 'old-key': 'new', 'new-key': 'val'}
     r = patch_dict(d, p)
     assert list(r) == ['old-key', 'other', 'new-key']
+
+
+def test_unsupported_patch_type():
+    with pytest.raises(TypeError, match=r"Unsupported patch type"):
+        patch_dict({'key': 123}, 456)
