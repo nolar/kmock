@@ -66,3 +66,8 @@ def test_patch_ordering():
     p = {'other': 'other', 'old-key': 'new', 'new-key': 'val'}
     r = patch_dict(d, p)
     assert list(r) == ['old-key', 'other', 'new-key']
+
+
+def test_unsupported_patch_type():
+    with pytest.raises(TypeError, match=r"Unsupported patch type"):
+        patch_dict({'key': 123}, 456)

@@ -1,10 +1,40 @@
 import collections.abc
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from types import EllipsisType
-from typing import Any
+from typing import Any, Literal, TypedDict
+
+import jsonpatch
+
+JSONPatchOp = Literal["add", "replace", "remove", "test", "move", "copy"]
 
 
-def patch_dict(value: Mapping[str, Any], patch: Mapping[str, Any], /, **kwargs: Any) -> Mapping[str, Any]:
+class JSONPatchItem(TypedDict, total=False):
+    op: JSONPatchOp
+    # from: str  # but it is a python keyword
+    path: str
+    value: Any | None
+
+
+JSONPatch = Sequence[JSONPatchItem]
+
+
+def patch_dict(value: Mapping[str, Any], patch: Mapping[str, Any] | JSONPatch, /, **kwargs: Any) -> Mapping[str, Any]:
+    match patch:
+        case Mapping():
+            return merge_patch_dict(value, patch, **kwargs)
+        case Sequence():
+            return json_patch_dict(value, patch, **kwargs)
+        case _:
+            raise TypeError(f"Unsupported patch type: {patch!r}")
+
+
+def json_patch_dict(value: Mapping[str, Any], patch: JSONPatch, /, **kwargs: Any) -> Mapping[str, Any]:
+    if kwargs:
+        raise TypeError("Keyword arguments are not supported with JSON-patches.")
+    return jsonpatch.apply_patch(dict(value), list(patch), in_place=False)  # type: ignore
+
+
+def merge_patch_dict(value: Mapping[str, Any], patch: Mapping[str, Any], /, **kwargs: Any) -> Mapping[str, Any]:
     """
     Patch & merge the dicts recursively. ``None`` means the deletion of the key.
 
