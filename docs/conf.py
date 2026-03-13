@@ -27,10 +27,10 @@ extensions = [
     'sphinx_llm.txt',
 ]
 
-templates_path = []
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-html_static_path = []
 html_theme = 'furo'
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+html_static_path = ['_static']
+templates_path = ['_templates']
 
 default_role = 'py:obj'
 
