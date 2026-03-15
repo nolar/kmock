@@ -214,7 +214,10 @@ class KubernetesScaffold(apps.RawHandler):
 
     # e.g. /api
     async def _serve_api(self, request: rendering.Request) -> rendering.Payload:
-        return {'versions': ['v1']}
+        return {
+            'kind': 'APIVersions',
+            'versions': ['v1'],
+        }
 
     # e.g. /apis
     async def _serve_apis(self, request: rendering.Request) -> rendering.Payload:
@@ -235,6 +238,8 @@ class KubernetesScaffold(apps.RawHandler):
             }
         }
         return {
+            'apiVersion': 'v1',
+            'kind': 'APIGroupList',
             'groups': [
                 {
                     'name': group,

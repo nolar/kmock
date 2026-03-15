@@ -69,54 +69,66 @@ async def test_kubernetes_streaming_exceptions(kmock: KubernetesEmulator) -> Non
 async def test_empty_server_resources(kmock: KubernetesEmulator) -> None:
     resp = await kmock.get('/')
     data = await resp.json()
+    assert set(data) == {'paths'}  # strictly control the unexpected extra keys
     assert set(data['paths']) == {'/', '/api', '/apis', '/version'}
 
     resp = await kmock.get('/api')
     data = await resp.json()
-    assert set(data) == {'versions'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'versions'}  # strictly control the unexpected extra keys
     assert set(data['versions']) == {'v1'}
+    assert data['kind'] == 'APIVersions'
 
     resp = await kmock.get('/apis')
     data = await resp.json()
-    assert set(data) == {'groups'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'apiVersion', 'groups'}  # strictly control the unexpected extra keys
     assert not data['groups']
+    assert data['kind'] == 'APIGroupList'
+    assert data['apiVersion'] == 'v1'
 
 
 async def test_root_discovery_with_coreapi(kmock: KubernetesEmulator) -> None:
     kmock.resources['v1/pods'] = kmock.ResourceInfo()
     resp = await kmock.get('/')
     data = await resp.json()
+    assert set(data) == {'paths'}  # strictly control the unexpected extra keys
     assert set(data['paths']) == {'/', '/api', '/apis', '/version', '/api/v1'}
 
     resp = await kmock.get('/api')
     data = await resp.json()
-    assert set(data) == {'versions'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'versions'}  # strictly control the unexpected extra keys
     assert set(data['versions']) == {'v1'}
+    assert data['kind'] == 'APIVersions'
 
     resp = await kmock.get('/apis')
     data = await resp.json()
-    assert set(data) == {'groups'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'apiVersion', 'groups'}  # strictly control the unexpected extra keys
     assert not data['groups']
+    assert data['kind'] == 'APIGroupList'
+    assert data['apiVersion'] == 'v1'
 
 
 async def test_root_discovery_with_group(kmock: KubernetesEmulator) -> None:
     kmock.resources['kopf.dev/v1/kopfexamples'] = kmock.ResourceInfo()
     resp = await kmock.get('/')
     data = await resp.json()
+    assert set(data) == {'paths'}  # strictly control the unexpected extra keys
     assert set(data['paths']) == {'/', '/api', '/apis', '/version', '/apis/kopf.dev', '/apis/kopf.dev/v1'}
 
     resp = await kmock.get('/api')
     data = await resp.json()
-    assert set(data) == {'versions'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'versions'}  # strictly control the unexpected extra keys
     assert set(data['versions']) == {'v1'}
+    assert data['kind'] == 'APIVersions'
 
     resp = await kmock.get('/apis')
     data = await resp.json()
-    assert set(data) == {'groups'}  # strictly control the unexpected extra keys
+    assert set(data) == {'kind', 'apiVersion', 'groups'}  # strictly control the unexpected extra keys
     assert len(data['groups']) == 1
     assert data['groups'][0]['name'] == 'kopf.dev'
     assert data['groups'][0]['versions'] == [{'version': 'v1', 'groupVersion': 'kopf.dev/v1'}]
     assert data['groups'][0]['preferredVersion'] == {'version': 'v1', 'groupVersion': 'kopf.dev/v1'}
+    assert data['kind'] == 'APIGroupList'
+    assert data['apiVersion'] == 'v1'
 
 
 async def test_group_discovery(kmock: KubernetesEmulator) -> None:
