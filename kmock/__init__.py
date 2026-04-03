@@ -13,9 +13,9 @@ from ._internal.k8s import KubernetesEmulator, KubernetesEndpointNotFoundError, 
                            KubernetesResourceNotFoundError, KubernetesScaffold
 from ._internal.k8s_dicts import Object, ObjectHistory, ObjectVersion
 from ._internal.k8s_views import HistoryKey, ObjectKey, ObjectsArray, ResourceDict, \
-                                 ResourceInfo, ResourceKey, ResourcesArray, VersionKey
+                                 ResourceKey, ResourcesArray, VersionKey
+from ._internal.references import ResourceInfo, Selectable, resource
 from ._internal.rendering import Payload, ReactionMismatchError, Request, Response, Sink, SinkBox
-from ._internal.resources import Selectable, resource
 from ._version import __commit_id__, __version__, __version_tuple__
 
 __all__ = [

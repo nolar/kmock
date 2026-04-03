@@ -45,6 +45,12 @@ dependencies = [
 ]
 dynamic = ["version"]  # taken from git tags
 
+[project.optional-dependencies]
+fetch = ["kubernetes"]
+
+[project.scripts]
+kmock = "kmock.__main__:main"
+
 [project.urls]
 homepage = "https://github.com/nolar/kmock"
 repository = "https://github.com/nolar/kmock"
@@ -86,6 +92,10 @@ dev = [
     {include-group = "test"},
 ]
 
+[tool.setuptools.packages.find]
+# The star is for the version.py, which is gitignored in docker builds (somewhy).
+include = ["kmock", "kmock.*"]
+
 [tool.setuptools_scm]
 version_file = "kmock/_version.py"
 
@@ -110,6 +120,9 @@ balanced_wrapping = true
 combine_as_imports = true
 case_sensitive = true
 known_first_party = ["kmock"]
+
+[tool.coverage.run]
+omit = ["kmock/__main__.py"]
 
 [tool.coverage.report]
 exclude_also = [

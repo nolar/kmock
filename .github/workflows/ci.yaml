@@ -79,6 +79,24 @@ jobs:
       - run: uv sync --group test
       - run: uv run pytest --color=yes --timeout=2
 
+  e2e-tests:
+    name: E2E with K3s
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - uses: nolar/setup-k3d-k3s@v1
+        with:
+          version: latest
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          k3s-args: --disable=metrics-server@server:*
+      - run: uv sync --extra fetch --group test
+      - run: uv run pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
+
   coveralls-finish:
     name: Finalize coveralls.io
     needs: [unit-tests, pypy-tests]
