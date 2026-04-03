@@ -54,48 +54,10 @@ class ResourceDict(TypedDict, total=True):
     subresources: Iterable[str]
 
 
-# NB: `converter=set` is easier, works at runtime, but makes mypy cry for no reason.
-def _to_set(v: Iterable[str]) -> set[str]:
-    return set(v)
-
-
-@attrs.define(repr=False, kw_only=True)
-class ResourceInfo:
-    """
-    The extended discovery information about a resource.
-
-    The identifying fields —group, version, plural— are not part of the class,
-    as they are used as the key of :class:`ResourceArray` or ``kmock.resources``
-    that leads to the extended resource information.
-    """
-    namespaced: bool | None = None
-    kind: str | None = None
-    singular: str | None = None
-
-    # NB: unordered mutable set, to be adjustable on quick access:
-    #   kmock.resources['v1/pods'].categories.add('cat')
-    verbs: set[str] = attrs.field(factory=set, converter=_to_set)
-    shortnames: set[str] = attrs.field(factory=set, converter=_to_set)
-    categories: set[str] = attrs.field(factory=set, converter=_to_set)
-    subresources: set[str] = attrs.field(factory=set, converter=_to_set)
-
-    def __repr__(self) -> str:
-        kwargs: dict[str, Any] = {
-            field.name: getattr(self, field.name)
-            for field in attrs.fields(type(self))
-        }
-        kwargs = {
-            key: val for key, val in kwargs.items()
-            if val is not None and val != set()
-        }
-        texts = ', '.join(f"{key!s}={val!r}" for key, val in kwargs.items())
-        return f"{type(self).__name__}({texts})"
-
-
 @attrs.define(init=False, repr=False, eq=False, order=False)
-class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
+class ResourcesArray(MutableMapping[ResourceKey, references.ResourceInfo | ResourceDict]):
     """
-    An associative array of extended information about cluster resources.
+    An associative array of extended information about cluster references.
 
     Exposed via ``kmock.resources``.
 
@@ -122,19 +84,19 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     fields are absent, they are returned either empty or guessed from the plural
     name of the resource (not grammatically correct, of course, but sufficient).
     """
-    _resources: dict[references.resource, ResourceInfo] = attrs.field(factory=dict, init=False)
+    _resources: dict[references.resource, references.ResourceInfo] = attrs.field(factory=dict, init=False)
 
-    def __init__(self, resources: Mapping[ResourceKey, ResourceInfo | ResourceDict] | None = None, /) -> None:
+    def __init__(self, resources: Mapping[ResourceKey, references.ResourceInfo | ResourceDict] | None = None, /) -> None:
         super().__init__()
 
         self._resources = {}
         for key, val in (resources or {}).items():
             resource = _parse_resource(key)
             match val:
-                case ResourceInfo():
+                case references.ResourceInfo():
                     self._resources[resource] = val
                 case Mapping():
-                    self._resources[resource] = ResourceInfo(**val)
+                    self._resources[resource] = references.ResourceInfo(**val)
                 case _:
                     raise TypeError(f"Unsupported resource value: {val!r}")
 
@@ -155,13 +117,13 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     def __contains__(self, key: object, /) -> bool:
         return (_parse_resource(key) if _is_resource_key(key) else key) in self._resources
 
-    def __setitem__(self, key: ResourceKey, value: ResourceInfo | ResourceDict, /) -> None:
+    def __setitem__(self, key: ResourceKey, value: references.ResourceInfo | ResourceDict, /) -> None:
         res = _parse_resource(key)
         match value:
-            case ResourceInfo():
+            case references.ResourceInfo():
                 self._resources[res] = value
             case Mapping():
-                self._resources[res] = ResourceInfo(**value)
+                self._resources[res] = references.ResourceInfo(**value)
             case _:
                 raise TypeError(f"Unsupported resource value: {value!r}")
 
@@ -169,12 +131,12 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
         res = _parse_resource(key)
         del self._resources[res]
 
-    def __getitem__(self, key: ResourceKey, /) -> ResourceInfo:
+    def __getitem__(self, key: ResourceKey, /) -> references.ResourceInfo:
         # The behaviour as for the defaultdict - to make it possible to assign fields blindly:
         #   kmock.resources['pods.v1'].kind = 'Pod'
         res = _parse_resource(key)
         if res not in self._resources:
-            self._resources[res] = ResourceInfo()
+            self._resources[res] = references.ResourceInfo()
         return self._resources[res]
 
     def clear(self) -> None:
