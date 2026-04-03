@@ -14,7 +14,7 @@ import attrs
 import yarl
 from typing_extensions import Self
 
-from kmock._internal import boxes, dns, dsl, enums, filtering, rendering, resources
+from kmock._internal import boxes, dns, dsl, enums, filtering, references, rendering
 
 
 # We mirror the client methods of aiohttp on the server object of kmock.
@@ -431,4 +431,4 @@ class RawHandler(dsl.Root):
     namespace = staticmethod(filtering.namespace)
     name = staticmethod(filtering.name)
     subresource = staticmethod(filtering.subresource)
-    resource = staticmethod(resources.resource)
+    resource = staticmethod(references.resource)

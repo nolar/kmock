@@ -4,12 +4,12 @@ from typing import Any, TypeGuard, TypedDict, overload
 
 import attrs
 
-from kmock._internal import k8s_dicts, resources
+from kmock._internal import k8s_dicts, references
 
-ArrayKey = tuple[resources.resource, str | None, str]  # pre-parsed ObjectKey
-ObjectKey = tuple[str | resources.resource, str | None, str]
-VersionKey = tuple[str | resources.resource, str | None, str, int]
-HistoryKey = tuple[str | resources.resource, str | None, str, slice]
+ArrayKey = tuple[references.resource, str | None, str]  # pre-parsed ObjectKey
+ObjectKey = tuple[str | references.resource, str | None, str]
+VersionKey = tuple[str | references.resource, str | None, str, int]
+HistoryKey = tuple[str | references.resource, str | None, str, slice]
 
 
 def _is_object_key(key: ObjectKey | VersionKey | HistoryKey) -> TypeGuard[ObjectKey]:
@@ -24,21 +24,21 @@ def _is_history_key(key: ObjectKey | VersionKey | HistoryKey) -> TypeGuard[Histo
     return len(key) == 4 and isinstance(key[-1], slice)
 
 
-ResourceKey = str | resources.Selectable | resources.resource
+ResourceKey = str | references.Selectable | references.resource
 
 
 def _is_resource_key(key: object) -> TypeGuard[ResourceKey]:
-    return isinstance(key, str | resources.Selectable | resources.resource)
+    return isinstance(key, str | references.Selectable | references.resource)
 
 
-def _parse_resource(key: ResourceKey) -> resources.resource:
+def _parse_resource(key: ResourceKey) -> references.resource:
     match key:
-        case resources.resource():
+        case references.resource():
             return key
-        case str() | resources.Selectable():
-            return resources.resource(key)
+        case str() | references.Selectable():
+            return references.resource(key)
         case tuple():  # length 1 & 2 & 3
-            return resources.resource(*key)
+            return references.resource(*key)
         case _:
             raise TypeError(f"Unsupported resource key: {key!r}")
 
@@ -122,7 +122,7 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     fields are absent, they are returned either empty or guessed from the plural
     name of the resource (not grammatically correct, of course, but sufficient).
     """
-    _resources: dict[resources.resource, ResourceInfo] = attrs.field(factory=dict, init=False)
+    _resources: dict[references.resource, ResourceInfo] = attrs.field(factory=dict, init=False)
 
     def __init__(self, resources: Mapping[ResourceKey, ResourceInfo | ResourceDict] | None = None, /) -> None:
         super().__init__()
@@ -149,7 +149,7 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     def __len__(self) -> int:
         return len(self._resources)
 
-    def __iter__(self) -> Iterator[resources.resource]:
+    def __iter__(self) -> Iterator[references.resource]:
         yield from self._resources
 
     def __contains__(self, key: object, /) -> bool:
