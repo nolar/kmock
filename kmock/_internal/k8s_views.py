@@ -54,6 +54,11 @@ class ResourceDict(TypedDict, total=True):
     subresources: Iterable[str]
 
 
+# NB: `converter=set` is easier, works at runtime, but makes mypy cry for no reason.
+def _to_set(v: Iterable[str]) -> set[str]:
+    return set(v)
+
+
 @attrs.define(repr=False, kw_only=True)
 class ResourceInfo:
     """
@@ -69,10 +74,10 @@ class ResourceInfo:
 
     # NB: unordered mutable set, to be adjustable on quick access:
     #   kmock.resources['v1/pods'].categories.add('cat')
-    verbs: set[str] = attrs.field(factory=set, converter=set)
-    shortnames: set[str] = attrs.field(factory=set, converter=set)
-    categories: set[str] = attrs.field(factory=set, converter=set)
-    subresources: set[str] = attrs.field(factory=set, converter=set)
+    verbs: set[str] = attrs.field(factory=set, converter=_to_set)
+    shortnames: set[str] = attrs.field(factory=set, converter=_to_set)
+    categories: set[str] = attrs.field(factory=set, converter=_to_set)
+    subresources: set[str] = attrs.field(factory=set, converter=_to_set)
 
     def __repr__(self) -> str:
         kwargs: dict[str, Any] = {
@@ -129,7 +134,7 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
                 case ResourceInfo():
                     self._resources[resource] = val
                 case Mapping():
-                    self._resources[resource] = ResourceInfo(**val)  # type: ignore[arg-type]
+                    self._resources[resource] = ResourceInfo(**val)
                 case _:
                     raise TypeError(f"Unsupported resource value: {val!r}")
 
@@ -156,7 +161,7 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
             case ResourceInfo():
                 self._resources[res] = value
             case Mapping():
-                self._resources[res] = ResourceInfo(**value)   # type: ignore[arg-type]
+                self._resources[res] = ResourceInfo(**value)
             case _:
                 raise TypeError(f"Unsupported resource value: {value!r}")
 
