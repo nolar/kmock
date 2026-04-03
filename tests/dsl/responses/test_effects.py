@@ -4,6 +4,7 @@ import io
 import queue
 import sys
 import threading
+import time
 from typing import Any, AsyncIterator, Iterator
 
 import pytest
@@ -206,10 +207,12 @@ async def test_async_condition_notifying(kmock: RawHandler) -> None:
 
     task = asyncio.create_task(wait())
     await kmock.get('/')
+    await asyncio.sleep(0.1)  # give the task priority in acquiring the lock before us
     async with condition:
         assert counter == 1
 
     await kmock.post('/')
+    await asyncio.sleep(0.1)  # give the task priority in acquiring the lock before us
     async with condition:
         assert counter == 2
 
@@ -241,12 +244,14 @@ async def test_sync_condition_notifying(kmock: RawHandler) -> None:
     ready.wait()
     ready.clear()
     await kmock.get('/')
+    time.sleep(0.1)  # give the thread priority in acquiring the lock before us
     with condition:
         assert counter == 1
 
     ready.wait()
     ready.clear()
     await kmock.post('/')
+    time.sleep(0.1)  # give the thread priority in acquiring the lock before us
     with condition:
         assert counter == 2
 
