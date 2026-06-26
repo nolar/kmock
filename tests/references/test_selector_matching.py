@@ -1,7 +1,7 @@
 import attrs
 import pytest
 
-from kmock._internal.resources import Selectable, resource
+from kmock._internal.references import Selectable, resource
 
 
 @attrs.frozen

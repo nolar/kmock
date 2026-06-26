@@ -15,7 +15,7 @@ import aiohttp.web
 import attrs
 from typing_extensions import Self
 
-from kmock._internal import boxes, enums, parsing, rendering, resources
+from kmock._internal import boxes, enums, parsing, references, rendering
 
 T = TypeVar('T')
 V = TypeVar('V')
@@ -47,8 +47,8 @@ Criterion: TypeAlias = (
     re.Pattern[bytes] |
     enums.action |
     enums.method |
-    resources.resource |
-    resources.Selectable |
+    references.resource |
+    references.Selectable |
     Mapping[str, "Criterion"] |
     set["Criterion"] |  # or-groups
     frozenset["Criterion"] |  # or-groups
@@ -97,8 +97,8 @@ class Criteria:
                 return True
 
             # Special types & wrappers check for themselves.
-            case resources.resource(), _:
-                return val is not None and (isinstance(val, resources.Selectable) and pat.check(val))
+            case references.resource(), _:
+                return val is not None and (isinstance(val, references.Selectable) and pat.check(val))
 
             # Enums from either side match both names & values case-insensitively.
             case enum.Enum(), _:
@@ -248,10 +248,10 @@ class Criteria:
                 return HTTPCriteria(headers=dict(arg))
             case boxes.cookies():
                 return HTTPCriteria(cookies=dict(arg))
-            case resources.resource():
+            case references.resource():
                 return K8sCriteria(resource=arg)
-            case resources.Selectable():
-                return K8sCriteria(resource=resources.resource(arg))
+            case references.Selectable():
+                return K8sCriteria(resource=references.resource(arg))
 
             # Generic Python types are either parsed & recognized, or go to multi-field criteria.
             case re.Pattern() if isinstance(arg.pattern, str):
@@ -391,7 +391,7 @@ class K8sCriteria(OptiCriteria):
     # Reminder: Ellipsis means "any value", None means explicitly "no value".
     method: enums.method | None | EllipsisType = ...
     action: enums.action | None | EllipsisType = ...
-    resource: resources.resource | None | EllipsisType = ...
+    resource: references.resource | None | EllipsisType = ...
     namespace: re.Pattern[str] | str | None | EllipsisType = ...
     name: re.Pattern[str] | str | None | EllipsisType = ...
     subresource: re.Pattern[str] | str | None | EllipsisType = ...

@@ -5,7 +5,7 @@ from typing import Any
 import attrs
 from typing_extensions import Self
 
-from kmock._internal import enums, resources
+from kmock._internal import enums, references
 
 
 @attrs.frozen
@@ -47,7 +47,7 @@ class ParsedK8s:
     # Reminder: None means it was not parsed, later translates to "any value".
     method: enums.method | None
     action: enums.action | None
-    resource: resources.resource | None
+    resource: references.resource | None
 
     @classmethod
     def parse(cls, s: str) -> Self | None:
@@ -64,7 +64,7 @@ class ParsedK8s:
         # No extra checks: it is impossible to make these two to be None in tests or in reality.
         # If the first word is not a known action and the action becomes None, then that word
         # goes to the resource parser and becomes the plural name of the resource (never None).
-        resource: resources.resource | None = resources.resource(s)
+        resource: references.resource | None = references.resource(s)
         resource = None if resource is None or (resource.group is None and resource.version is None and resource.plural is None) else resource
         return cls(method, action, resource)
 

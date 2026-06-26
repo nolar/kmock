@@ -37,6 +37,7 @@ KMock runs well with looptime_, the time dilation/contraction library for asynci
 
    kubernetes/handlers
    kubernetes/discovery
+   kubernetes/preloading
    kubernetes/persistence
    kubernetes/assertions
 

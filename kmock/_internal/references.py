@@ -1,5 +1,6 @@
 import re
-from typing import Protocol, Union, runtime_checkable
+from collections.abc import Iterable
+from typing import Any, Protocol, Union, runtime_checkable
 
 import attrs
 
@@ -134,3 +135,41 @@ class resource(Selectable):
             (self.version is None or self.version == resource.version) and
             (self.plural is None or self.plural == resource.plural)
         )
+
+
+# NB: `converter=set` is easier, works at runtime, but makes mypy cry for no reason.
+def _to_set(v: Iterable[str]) -> set[str]:
+    return set(v)
+
+
+@attrs.define(repr=False, kw_only=True)
+class ResourceInfo:
+    """
+    The extended discovery information about a resource.
+
+    The identifying fields —group, version, plural— are not part of the class,
+    as they are used as the key of :class:`ResourceArray` or ``kmock.resources``
+    that leads to the extended resource information.
+    """
+    namespaced: bool | None = None
+    kind: str | None = None
+    singular: str | None = None
+
+    # NB: unordered mutable set, to be adjustable on quick access:
+    #   kmock.resources['v1/pods'].categories.add('cat')
+    verbs: set[str] = attrs.field(factory=set, converter=_to_set)
+    shortnames: set[str] = attrs.field(factory=set, converter=_to_set)
+    categories: set[str] = attrs.field(factory=set, converter=_to_set)
+    subresources: set[str] = attrs.field(factory=set, converter=_to_set)
+
+    def __repr__(self) -> str:
+        kwargs: dict[str, Any] = {
+            field.name: getattr(self, field.name)
+            for field in attrs.fields(type(self))
+        }
+        kwargs = {
+            key: val for key, val in kwargs.items()
+            if val is not None and val != set()
+        }
+        texts = ', '.join(f"{key!s}={val!r}" for key, val in kwargs.items())
+        return f"{type(self).__name__}({texts})"

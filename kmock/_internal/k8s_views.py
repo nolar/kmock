@@ -1,15 +1,19 @@
 import collections.abc
+import gzip
+import importlib.resources
+import json
+import pathlib
 from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 from typing import Any, TypeGuard, TypedDict, overload
 
 import attrs
 
-from kmock._internal import k8s_dicts, resources
+from kmock._internal import fetching, k8s_dicts, loading, references
 
-ArrayKey = tuple[resources.resource, str | None, str]  # pre-parsed ObjectKey
-ObjectKey = tuple[str | resources.resource, str | None, str]
-VersionKey = tuple[str | resources.resource, str | None, str, int]
-HistoryKey = tuple[str | resources.resource, str | None, str, slice]
+ArrayKey = tuple[references.resource, str | None, str]  # pre-parsed ObjectKey
+ObjectKey = tuple[str | references.resource, str | None, str]
+VersionKey = tuple[str | references.resource, str | None, str, int]
+HistoryKey = tuple[str | references.resource, str | None, str, slice]
 
 
 def _is_object_key(key: ObjectKey | VersionKey | HistoryKey) -> TypeGuard[ObjectKey]:
@@ -24,21 +28,21 @@ def _is_history_key(key: ObjectKey | VersionKey | HistoryKey) -> TypeGuard[Histo
     return len(key) == 4 and isinstance(key[-1], slice)
 
 
-ResourceKey = str | resources.Selectable | resources.resource
+ResourceKey = str | references.Selectable | references.resource
 
 
 def _is_resource_key(key: object) -> TypeGuard[ResourceKey]:
-    return isinstance(key, str | resources.Selectable | resources.resource)
+    return isinstance(key, str | references.Selectable | references.resource)
 
 
-def _parse_resource(key: ResourceKey) -> resources.resource:
+def _parse_resource(key: ResourceKey) -> references.resource:
     match key:
-        case resources.resource():
+        case references.resource():
             return key
-        case str() | resources.Selectable():
-            return resources.resource(key)
+        case str() | references.Selectable():
+            return references.resource(key)
         case tuple():  # length 1 & 2 & 3
-            return resources.resource(*key)
+            return references.resource(*key)
         case _:
             raise TypeError(f"Unsupported resource key: {key!r}")
 
@@ -54,43 +58,10 @@ class ResourceDict(TypedDict, total=True):
     subresources: Iterable[str]
 
 
-@attrs.define(repr=False, kw_only=True)
-class ResourceInfo:
-    """
-    The extended discovery information about a resource.
-
-    The identifying fields —group, version, plural— are not part of the class,
-    as they are used as the key of :class:`ResourceArray` or ``kmock.resources``
-    that leads to the extended resource information.
-    """
-    namespaced: bool | None = None
-    kind: str | None = None
-    singular: str | None = None
-
-    # NB: unordered mutable set, to be adjustable on quick access:
-    #   kmock.resources['v1/pods'].categories.add('cat')
-    verbs: set[str] = attrs.field(factory=set, converter=set)
-    shortnames: set[str] = attrs.field(factory=set, converter=set)
-    categories: set[str] = attrs.field(factory=set, converter=set)
-    subresources: set[str] = attrs.field(factory=set, converter=set)
-
-    def __repr__(self) -> str:
-        kwargs: dict[str, Any] = {
-            field.name: getattr(self, field.name)
-            for field in attrs.fields(type(self))
-        }
-        kwargs = {
-            key: val for key, val in kwargs.items()
-            if val is not None and val != set()
-        }
-        texts = ', '.join(f"{key!s}={val!r}" for key, val in kwargs.items())
-        return f"{type(self).__name__}({texts})"
-
-
 @attrs.define(init=False, repr=False, eq=False, order=False)
-class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
+class ResourcesArray(MutableMapping[ResourceKey, references.ResourceInfo | ResourceDict]):
     """
-    An associative array of extended information about cluster resources.
+    An associative array of extended information about cluster references.
 
     Exposed via ``kmock.resources``.
 
@@ -117,19 +88,19 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     fields are absent, they are returned either empty or guessed from the plural
     name of the resource (not grammatically correct, of course, but sufficient).
     """
-    _resources: dict[resources.resource, ResourceInfo] = attrs.field(factory=dict, init=False)
+    _resources: dict[references.resource, references.ResourceInfo] = attrs.field(factory=dict, init=False)
 
-    def __init__(self, resources: Mapping[ResourceKey, ResourceInfo | ResourceDict] | None = None, /) -> None:
+    def __init__(self, resources: Mapping[ResourceKey, references.ResourceInfo | ResourceDict] | None = None, /) -> None:
         super().__init__()
 
         self._resources = {}
         for key, val in (resources or {}).items():
             resource = _parse_resource(key)
             match val:
-                case ResourceInfo():
+                case references.ResourceInfo():
                     self._resources[resource] = val
                 case Mapping():
-                    self._resources[resource] = ResourceInfo(**val)  # type: ignore[arg-type]
+                    self._resources[resource] = references.ResourceInfo(**val)
                 case _:
                     raise TypeError(f"Unsupported resource value: {val!r}")
 
@@ -144,19 +115,19 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
     def __len__(self) -> int:
         return len(self._resources)
 
-    def __iter__(self) -> Iterator[resources.resource]:
+    def __iter__(self) -> Iterator[references.resource]:
         yield from self._resources
 
     def __contains__(self, key: object, /) -> bool:
         return (_parse_resource(key) if _is_resource_key(key) else key) in self._resources
 
-    def __setitem__(self, key: ResourceKey, value: ResourceInfo | ResourceDict, /) -> None:
+    def __setitem__(self, key: ResourceKey, value: references.ResourceInfo | ResourceDict, /) -> None:
         res = _parse_resource(key)
         match value:
-            case ResourceInfo():
+            case references.ResourceInfo():
                 self._resources[res] = value
             case Mapping():
-                self._resources[res] = ResourceInfo(**value)   # type: ignore[arg-type]
+                self._resources[res] = references.ResourceInfo(**value)
             case _:
                 raise TypeError(f"Unsupported resource value: {value!r}")
 
@@ -164,16 +135,67 @@ class ResourcesArray(MutableMapping[ResourceKey, ResourceInfo | ResourceDict]):
         res = _parse_resource(key)
         del self._resources[res]
 
-    def __getitem__(self, key: ResourceKey, /) -> ResourceInfo:
+    def __getitem__(self, key: ResourceKey, /) -> references.ResourceInfo:
         # The behaviour as for the defaultdict - to make it possible to assign fields blindly:
         #   kmock.resources['pods.v1'].kind = 'Pod'
         res = _parse_resource(key)
         if res not in self._resources:
-            self._resources[res] = ResourceInfo()
+            self._resources[res] = references.ResourceInfo()
         return self._resources[res]
 
     def clear(self) -> None:
         self._resources.clear()
+
+    def load_data(self, data: str | bytes, /) -> None:
+        """
+        Load the resource definitions from a data blob.
+
+        The data structure is opaque, i.e. you should not interpret it.
+        Store it and use it exactly as generated by ``kmock fetch resources``.
+        The data format may change in the future without a warning
+        (with backwards compatibility for the old formats).
+        """
+        text: str = data if isinstance(data, str) else data.decode('utf-8')
+        docs: list[fetching.Doc] = json.loads(text)
+        for doc in docs:
+            self._resources |= loading.parse_group_version(doc)
+
+    def load_path(self, path: str | pathlib.Path, /) -> None:
+        """
+        Load the resource definitions from a file.
+
+        See :meth:`ResourcesArray.load_data`.
+        """
+        path = pathlib.Path(path) if isinstance(path, str) else path
+        if path.suffix == '.gz':
+            with gzip.open(path, 'rt', encoding='utf-8') as f:
+                self.load_data(f.read())
+        elif path.suffix == '.bz2':
+            import bz2
+            with bz2.open(path, 'rt', encoding='utf-8') as f:
+                self.load_data(f.read())
+        elif path.suffix == '.zst':
+            from compression import zstd  # python 3.14+
+            with zstd.open(path, 'rt', encoding='utf-8') as f:
+                self.load_data(f.read())
+        else:
+            with open(path, 'rt', encoding='utf-8') as f:
+                self.load_data(f.read())
+
+    def load_bundled(self) -> None:
+        """
+        Load the prepared bundled resource definitions from the package itself.
+
+        Beware: it might be outdated and incomplete. The file is maintained
+        on the best effort basis. Usually, it is constructed from a recent K3s
+        cluster in the default setup, with CRDs stripped, only with builtins.
+
+        For anything different from this quick and "good enough" option,
+        build your own resource file with ``kmock fetch resources --help``.
+        """
+        data: bytes = importlib.resources.read_binary('kmock._internal', 'resources.json.gz')
+        text: bytes = gzip.decompress(data)
+        self.load_data(text)
 
 
 # NB: Mapping-like, but not a Mapping — there is no specific fixed-type key-val.

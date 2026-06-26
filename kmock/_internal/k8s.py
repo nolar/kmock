@@ -12,7 +12,7 @@ import aiohttp.web
 import attrs
 from typing_extensions import override
 
-from kmock._internal import aiobus, apps, dsl, enums, filtering, k8s_dicts, k8s_views, rendering, resources
+from kmock._internal import aiobus, apps, dsl, enums, filtering, k8s_dicts, k8s_views, references, rendering
 
 
 @attrs.frozen
@@ -150,7 +150,7 @@ class KubernetesScaffold(apps.RawHandler):
                         paths.add(filter.criteria.path)
         return paths
 
-    def _get_resources(self) -> list[resources.resource]:
+    def _get_resources(self) -> list[references.resource]:
         """
         Reconstruct the supposed K8s resources served by this handler.
 
@@ -166,7 +166,7 @@ class KubernetesScaffold(apps.RawHandler):
         The reconstruction might be imprecise, it is the best effort basis.
         In case of need, declare the intended resources explicitly.
         """
-        result: set[resources.resource] = set()
+        result: set[references.resource] = set()
         for resource in self._resources:  # explicitly declared
             result.add(resource)
         for payload in self._payloads:  # implicitly declared
@@ -333,7 +333,7 @@ class KubernetesScaffold(apps.RawHandler):
     # The library itself DOES NOT use these fields, it uses the classes directly.
     # For when the fixture name overlaps the library name, so that it requires writing `import…as…`.
     ResourceKey = k8s_views.ResourceKey
-    ResourceInfo = k8s_views.ResourceInfo
+    ResourceInfo = references.ResourceInfo
     ResourceDict = k8s_views.ResourceDict
     ResourcesArray = k8s_views.ResourcesArray
 
@@ -371,7 +371,7 @@ class KubernetesEmulator(KubernetesScaffold):
     _objects: k8s_views.ObjectsArray = attrs.field(factory=k8s_views.ObjectsArray, init=False)
 
     _lock = attrs.field(factory=asyncio.Lock, init=False)
-    _buses: dict[resources.resource, aiobus.Bus[Any]] = attrs.field(factory=lambda: collections.defaultdict(aiobus.Bus))
+    _buses: dict[references.resource, aiobus.Bus[Any]] = attrs.field(factory=lambda: collections.defaultdict(aiobus.Bus))
 
     def __attrs_post_init__(self) -> None:
         # If there is no specific user instruction found, serve the implicit logic as a K8s server.
@@ -536,9 +536,9 @@ class KubernetesEmulator(KubernetesScaffold):
         assert obj is not None  # logically impossible, deleted in _handle(); for type-checkers
         return obj.last.raw
 
-    def _get_resources(self) -> list[resources.resource]:
+    def _get_resources(self) -> list[references.resource]:
         # Also include the specific objects if the resources are not declared.
-        result: set[resources.resource] = set(super()._get_resources())
+        result: set[references.resource] = set(super()._get_resources())
         for resource, _, _ in self._objects:
             result.add(resource)
         return list(result)
@@ -560,7 +560,7 @@ class KubernetesEmulator(KubernetesScaffold):
     def __check(
             self,
             request: rendering.Request,
-            resource: resources.resource,
+            resource: references.resource,
             namespace: str | None,
             name: str,
             strict: bool,

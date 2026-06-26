@@ -18,7 +18,7 @@ import attrs
 import yarl
 from typing_extensions import Self
 
-from kmock._internal import aiobus, boxes, enums, parsing, resources
+from kmock._internal import aiobus, boxes, enums, parsing, references
 
 # Multi-type content for responses, with a heuristic to serve each type differently.
 # Each item can be the whole response or a step of a streaming response.
@@ -236,7 +236,7 @@ class Request:
 
     # Parsed K8s-specifics (even if it was defined as a raw pattern or was not registered at all).
     action: enums.action | None = None
-    resource: resources.resource | None = None
+    resource: references.resource | None = None
     namespace: str | None = None  # None means cluster-wide (for requests)
     name: str | None = None
     subresource: str | None = None
@@ -274,7 +274,7 @@ class Request:
 
         # Translate the HTTP request into the K8s request as much as possible.
         k8s = parsing.parse_path(raw_request.path)
-        resource = None if k8s is None or k8s.group is None else resources.resource(
+        resource = None if k8s is None or k8s.group is None else references.resource(
             group=k8s.group, version=k8s.version, plural=k8s.plural)
         method = enums.method(raw_request.method)  # even if unknown
         action = parsing.guess_k8s(k8s, method, dict(raw_request.query))
