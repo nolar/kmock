@@ -305,11 +305,21 @@ class RawHandler(dsl.Root):
         # Mind that both the user-provided callbacks and our own code can fail.
         except Exception as e:
             # Outside of context managers, let the caller (e.g. a web server) deal with the failure.
-            if not self._errors:
+            # Exception: KubernetesError should always be rendered properly with correct status codes.
+            try:
+                # Import here to avoid circular dependency (k8s imports apps), ideally the error
+                # classes would be defined in their own module.
+                from kmock._internal.k8s import KubernetesError
+                is_k8s_error = isinstance(e, KubernetesError)
+            except ImportError:
+                is_k8s_error = False
+
+            if not self._errors and not is_k8s_error:
                 raise
 
             # Inside the context managers, accumulate the errors and re-raise at exiting.
-            self._errors[-1].append(e)
+            if self._errors:
+                self._errors[-1].append(e)
 
             # If the connection already got some traffic, reuse that stream. If not, respond anew.
             if raw_response is None or not raw_response.prepared:

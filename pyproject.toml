@@ -78,6 +78,7 @@ test = [
     "pytest-asyncio",
     "pytest-mock",
     "pytest-timeout",
+    "kubernetes",
 ]
 lint = [
     {include-group = "test"},
