@@ -174,7 +174,6 @@ async def test_queues_feeding(kmock: RawHandler, queue_cls: Any) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_feeding_buses(kmock: RawHandler, looptime: int) -> None:
     bus = Bus()
     mark = await bus.mark()

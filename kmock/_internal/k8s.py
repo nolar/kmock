@@ -413,8 +413,7 @@ class KubernetesEmulator(KubernetesScaffold):
                     elif self._objects[object_key].get('metadata', {}).get('deletionTimestamp'):
                         pass  # already marked for deletion, nothing to do here
                     elif self._objects[object_key].get('metadata', {}).get('finalizers', []):
-                        # TODO: remove the condition on Python 3.10 dropping.
-                        now = datetime.datetime.now(tz=datetime.timezone.utc) if sys.version_info >= (3, 11) else datetime.datetime.utcnow()
+                        now = datetime.datetime.now(tz=datetime.timezone.utc)
                         nows = now.isoformat()
                         self._objects[object_key].patch({'metadata': {'deletionTimestamp': nows}})
                         raw = self._objects[object_key].raw

@@ -264,7 +264,7 @@ class RawHandler(dsl.Root):
         # If nested levels raise errors or error groups from requests, they are never combined.
         # Want combined error groups? Then avoid nested context managers, use the top-level one.
         if self.strict and exc_value is None and errors:
-            if sys.version_info >= (3, 11) and len(errors) > 1:
+            if len(errors) > 1:
                 raise ExceptionGroup("Several exceptions happened.", tuple(errors))
             else:
                 raise errors[0]
