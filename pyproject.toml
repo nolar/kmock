@@ -46,7 +46,7 @@ dependencies = [
 dynamic = ["version"]  # taken from git tags
 
 [project.optional-dependencies]
-fetch = ["kubernetes"]
+fetch = ["kubernetes>=36"]
 
 [project.scripts]
 kmock = "kmock.__main__:main"
