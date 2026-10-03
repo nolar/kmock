@@ -98,8 +98,8 @@ def parse_path(path: str) -> ParsedPath:
             namespace, *parts = parts[1:]
         else:
             namespace = None
-        plural, *parts = parts if parts else [None]
-        name, *parts = parts if parts else [None]
+        plural, *parts = parts + ([] if parts else [None])
+        name, *parts = parts + ([] if parts else [None])
         subresource = '/'.join([s for s in parts if s]) or None
     else:
         plural = namespace = name = subresource = None
