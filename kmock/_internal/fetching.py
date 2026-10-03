@@ -125,10 +125,6 @@ def _api_scan() -> list[Doc]:
 
 
 def _api_get(api_client: Any, path: str) -> Any:
-    response = api_client.call_api(
-        path, 'GET',
-        _preload_content=False,
-        response_type='str',
-    )
-    data: bytes = response[0].data
+    response = api_client.call_api(path, 'GET', _preload_content=False)
+    data: bytes = response.data
     return json.loads(data)
