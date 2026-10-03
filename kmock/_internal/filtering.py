@@ -9,11 +9,10 @@ import re
 import threading
 from collections.abc import Callable, Mapping
 from types import EllipsisType
-from typing import Any, Protocol, TypeAlias, TypeVar, Union, runtime_checkable
+from typing import Any, Protocol, Self, TypeAlias, TypeVar, Union, runtime_checkable
 
 import aiohttp.web
 import attrs
-from typing_extensions import Self
 
 from kmock._internal import boxes, enums, parsing, references, rendering
 

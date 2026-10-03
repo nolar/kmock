@@ -5,7 +5,8 @@ import queue
 import sys
 import threading
 import time
-from typing import Any, AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
 
 import pytest
 

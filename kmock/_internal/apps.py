@@ -5,14 +5,13 @@ import traceback
 from collections.abc import AsyncIterator, Awaitable, Callable
 from importlib.metadata import version
 from types import TracebackType
-from typing import Any, AsyncContextManager, Protocol
+from typing import Any, AsyncContextManager, Protocol, Self
 
 import aiohttp.client
 import aiohttp.test_utils
 import aiohttp.web
 import attrs
 import yarl
-from typing_extensions import Self
 
 from kmock._internal import boxes, dns, dsl, enums, filtering, references, rendering
 

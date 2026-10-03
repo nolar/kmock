@@ -11,12 +11,11 @@ import warnings
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, \
                             Generator, Iterable, Mapping, MutableSequence, MutableSet, Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, Union, cast, final
+from typing import Any, Self, Union, cast, final
 
 import aiohttp.web
 import attrs
 import yarl
-from typing_extensions import Self
 
 from kmock._internal import aiobus, boxes, enums, parsing, references
 

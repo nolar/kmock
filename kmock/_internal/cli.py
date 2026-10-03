@@ -54,5 +54,5 @@ def _fetch_resources(
         with zstd.open(path, 'wt', level=20, encoding='utf-8') as f:
             f.write(text)
     else:
-        with open(path, 'wt', encoding='utf-8') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             f.write(text)

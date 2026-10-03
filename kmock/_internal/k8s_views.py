@@ -179,7 +179,7 @@ class ResourcesArray(MutableMapping[ResourceKey, references.ResourceInfo | Resou
             with zstd.open(path, 'rt', encoding='utf-8') as f:
                 self.load_data(f.read())
         else:
-            with open(path, 'rt', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 self.load_data(f.read())
 
     def load_bundled(self) -> None:

@@ -5,11 +5,11 @@ import math
 import operator
 from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
 from types import EllipsisType, TracebackType
-from typing import TypeVar, Union, overload
+from typing import Self, TypeVar, Union, overload
 
 import aiohttp.web
 import attrs
-from typing_extensions import Self, override
+from typing_extensions import override
 
 from kmock._internal import aiobus, filtering, rendering
 

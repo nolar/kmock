@@ -5,8 +5,9 @@ import json
 import re
 import sys
 import traceback
+from collections.abc import AsyncIterator
 from types import EllipsisType
-from typing import Any, AsyncIterator
+from typing import Any
 
 import aiohttp.web
 import attrs
@@ -413,7 +414,7 @@ class KubernetesEmulator(KubernetesScaffold):
                     elif self._objects[object_key].get('metadata', {}).get('deletionTimestamp'):
                         pass  # already marked for deletion, nothing to do here
                     elif self._objects[object_key].get('metadata', {}).get('finalizers', []):
-                        now = datetime.datetime.now(tz=datetime.timezone.utc)
+                        now = datetime.datetime.now(tz=datetime.UTC)
                         nows = now.isoformat()
                         self._objects[object_key].patch({'metadata': {'deletionTimestamp': nows}})
                         raw = self._objects[object_key].raw

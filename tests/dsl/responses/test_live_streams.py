@@ -1,7 +1,8 @@
 import asyncio
 import functools
 import io
-from typing import Any, AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
 
 import pytest
 
@@ -60,8 +61,7 @@ async def test_depleted_source_skips_the_response_for_spying(kmock: RawHandler) 
 
 
 def sync_gen(source: list[Any]) -> Iterator[Any]:
-    for item in source:
-        yield item
+    yield from source
 
 
 async def async_gen(source: list[Any]) -> AsyncIterator[Any]:
