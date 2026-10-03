@@ -119,6 +119,8 @@ it is available as an optional extra:
 .. code-block:: shell
 
     pip install kmock[fetch]
+    # or
+    uv add kmock[fetch]
 
 Fetch resources and write to a file:
 

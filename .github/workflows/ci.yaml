@@ -15,12 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
-      - uses: actions/setup-python@v7
         with:
+          github-token: ${{ github.token }}
+          enable-cache: true
           python-version: "3.14"
+          activate-environment: true
       - run: uv sync --no-dev --group lint
-      - run: uv run --no-sync pre-commit run --all-files
-      - run: uv run --no-sync mypy
+      - run: pre-commit run --all-files
+      - run: mypy
 
   unit-tests:
     strategy:
@@ -34,12 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
-      - uses: actions/setup-python@v7
         with:
+          github-token: ${{ github.token }}
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-
+          activate-environment: true
       - run: uv sync --no-dev --group test
-      - run: uv run --no-sync coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
+      - run: coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
 
       - name: Publish coverage to Coveralls.io
         uses: coverallsapp/github-action@v2
@@ -72,12 +75,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
-      - uses: actions/setup-python@v7
         with:
+          github-token: ${{ github.token }}
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-
+          activate-environment: true
       - run: uv sync --no-dev --group test
-      - run: uv run --no-sync pytest --color=yes --timeout=2
+      - run: pytest --color=yes --timeout=2
 
   e2e-tests:
     name: E2E with K3s
@@ -86,16 +90,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
-      - uses: actions/setup-python@v7
         with:
+          github-token: ${{ github.token }}
+          enable-cache: true
           python-version: "3.14"
+          activate-environment: true
       - uses: nolar/setup-k3d-k3s@v1
         with:
           version: latest
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           k3s-args: --disable=metrics-server@server:*
-      - run: uv sync --no-dev --extra fetch --group test
-      - run: uv run --no-sync pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
+      - run: uv sync --no-dev --group test --extra fetch
+      - run: pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
 
   coveralls-finish:
     name: Finalize coveralls.io
