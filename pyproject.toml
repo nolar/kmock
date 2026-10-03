@@ -82,7 +82,7 @@ lint = [
     {include-group = "test"},
     "isort",
     "import-linter",
-    "mypy==1.19.1",
+    "mypy==2.4.0",
     "pre-commit",
 ]
 dev = [
