@@ -58,7 +58,7 @@ repos:
       # - id: python-no-log-warn  # overreacts to `kopf.warn()`.
 
   - repo: https://github.com/PyCQA/isort
-    rev: 7.0.0
+    rev: 9.0.1
     hooks:
       - id: isort
         name: isort-source-code
@@ -68,7 +68,7 @@ repos:
 #  #   But we need those Union[] syntax at runtime, or it raises an error.
 #  #   --keep-runtime-typing does not help.
 #  - repo: https://github.com/asottile/pyupgrade
-#    rev: v3.21.0
+#    rev: v3.21.2
 #    hooks:
 #    -   id: pyupgrade
 #        args: [--py310-plus, --keep-mock]
