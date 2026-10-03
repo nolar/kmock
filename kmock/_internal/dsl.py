@@ -5,7 +5,7 @@ import math
 import operator
 from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
 from types import EllipsisType, TracebackType
-from typing import Self, TypeVar, Union, overload
+from typing import Self, TypeVar, overload
 
 import aiohttp.web
 import attrs
@@ -43,9 +43,7 @@ class View(abc.ABC):
     def __getitem__(self, item: filtering.Criterion) -> "View":
         ...
 
-    # TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-    #   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
-    def __getitem__(self, item: None | int | slice | EllipsisType | filtering.Criterion | set[filtering.Criterion] | tuple[filtering.Criterion, ...]) -> Union[rendering.Request, "View"]:
+    def __getitem__(self, item: None | int | slice | EllipsisType | filtering.Criterion | set[filtering.Criterion] | tuple[filtering.Criterion, ...]) -> "rendering.Request | View":
         # NB: only the DSL-specific type checks here! Not the criteria--specific!
         match item:
             case None:
@@ -77,22 +75,22 @@ class View(abc.ABC):
                     raise NotImplementedError(f"Unsupported filtering criteria: {item!r}")
                 return Filter(self, criteria)
 
-    def __lshift__(self, other: rendering.Payload) -> Union["Reaction", "Stream"]:
+    def __lshift__(self, other: rendering.Payload) -> "Reaction | Stream":
         new = Reaction(self) << other
         for root in self._walk(Root, unique=True):
             root._payloads.append(new)
         return new
 
-    def __rshift__(self, other: rendering.Sink) -> Union["Reaction", "Stream"]:
+    def __rshift__(self, other: rendering.Sink) -> "Reaction | Stream":
         new = Reaction(self) >> other
         for root in self._walk(Root, unique=True):
             root._payloads.append(new)
         return new
 
-    def __rlshift__(self, other: rendering.Sink) -> Union["Reaction", "Stream"]:
+    def __rlshift__(self, other: rendering.Sink) -> "Reaction | Stream":
         return self.__rshift__(other)
 
-    def __rrshift__(self, other: rendering.Payload) -> Union["Reaction", "Stream"]:
+    def __rrshift__(self, other: rendering.Payload) -> "Reaction | Stream":
         return self.__lshift__(other)
 
     def __or__(self, other: "View") -> "OrGroup":
@@ -387,9 +385,7 @@ class Filter(Chained):
     def __getitem__(self, item: filtering.Criterion) -> "View":
         ...
 
-    # TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-    #   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
-    def __getitem__(self, item: None | int | slice | EllipsisType | filtering.Criterion) -> Union[rendering.Request, "View"]:
+    def __getitem__(self, item: None | int | slice | EllipsisType | filtering.Criterion) -> "rendering.Request | View":
         new = super().__getitem__(item)
         # Try to optimize/collapse chained criteria into one to ease the debugging & save RAM.
         # This also helps to catch the conflicting requirements, which otherwise lead to no matches.

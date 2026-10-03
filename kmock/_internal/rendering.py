@@ -11,7 +11,7 @@ import warnings
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, \
                             Generator, Iterable, Mapping, MutableSequence, MutableSet, Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, Self, Union, cast, final
+from typing import Any, Self, TypeAlias, cast, final
 
 import aiohttp.web
 import attrs
@@ -21,52 +21,50 @@ from kmock._internal import aiobus, boxes, enums, parsing, references
 
 # Multi-type content for responses, with a heuristic to serve each type differently.
 # Each item can be the whole response or a step of a streaming response.
-# TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-#   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
-Payload = Union[
-    None,
+Payload: TypeAlias = (
+    None |
 
     # Raw binary payload get into the response bodies or streams unmodified:
-    bytes,
-    pathlib.Path,
-    io.RawIOBase,
-    io.TextIOBase,
-    io.BufferedIOBase,
+    bytes |
+    pathlib.Path |
+    io.RawIOBase |
+    io.TextIOBase |
+    io.BufferedIOBase |
 
     # Plain types with JSON-like syntax in Python go to requests JSON- or JSON-lines-encoded:
-    str,
-    int,
-    float,
-    list[Any],
-    dict[Any, Any],
-    Mapping[Any, Any],
+    str |
+    int |
+    float |
+    list[Any] |
+    dict[Any, Any] |
+    Mapping[Any, Any] |
 
     # Ellipsis ("...") marks a live response (if top-level) or a live stream segment (if nested):
-    EllipsisType,
+    EllipsisType |
 
     # Round-brackets (collections, generators) become streams; they can be individually depleted:
-    tuple["Payload", ...],
-    Iterable["Payload"],
-    AsyncIterable["Payload"],
+    tuple["Payload", ...] |
+    Iterable["Payload"] |
+    AsyncIterable["Payload"] |
 
     # Lazily evaluated content is unfolded at request handling time:
-    Awaitable["Payload"],  # coros, tasks, futures (awaited before rendering)
-    Callable[[], "Payload"],  # lambdas, partials, sync & async callbacks
-    Callable[["Request"], "Payload"],  # lambdas, partials, sync & async callbacks
+    Awaitable["Payload"] |  # coros, tasks, futures (awaited before rendering)
+    Callable[[], "Payload"] |  # lambdas, partials, sync & async callbacks
+    Callable[["Request"], "Payload"] |  # lambdas, partials, sync/async fns
 
     # Exceptions are re-raised in place (some have special meaning):
-    type[BaseException],
-    BaseException,
+    type[BaseException] |
+    BaseException |
 
     # Pre-interpreted or explicitly classified metadata to override the declared one:
-    "Response",
+    "Response" |
 
     # An internal trick to keep side effects inbetween content sequence, but ignore their results:
-    "SinkBox",
-]
+    "SinkBox"
+)
 
 # Boxes can be fed into ``<<``, but never get into the payload directly (thus a separate type).
-PayloadBox = (
+PayloadBox: TypeAlias = (
     boxes.data |
     boxes.text[None] |
     boxes.body[None] |
@@ -75,49 +73,47 @@ PayloadBox = (
 )
 
 # Sinks are where the requests go to, but any results of it are ignored. Typically used via >>.
-# TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-#   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
-Sink = Union[
-    None,
+Sink: TypeAlias = (
+    None |
 
     # For files & i/o, the requests are append-saved into those files (not overwritten!):
     #   kmock['get /'] >> pathlib.Path('/tmp/reqs.log') >> (sio:=io.StringIO())
-    pathlib.Path,
-    io.RawIOBase,
-    io.TextIOBase,
-    io.BufferedIOBase,
+    pathlib.Path |
+    io.RawIOBase |
+    io.TextIOBase |
+    io.BufferedIOBase |
 
     # Mutable collections get the requests added to them (no dicts yet: unclear value):
     #   kmock['get /'] >> (requests:=[]) >> (deduplicated:=set())
-    MutableSequence["Request"],
-    MutableSet["Request"],
+    MutableSequence["Request"] |
+    MutableSet["Request"] |
 
     # Synchronization primitives get the request object put/set into them:
     #   kmock['get /'] >> (fut:=asyncio.Future()) >> (queue:=asyncio.Queue())
-    concurrent.futures.Future["Request"],
-    asyncio.Future["Request"],
-    asyncio.Queue["Request"],
-    queue.Queue["Request"],
-    threading.Event,
-    threading.Condition,
-    asyncio.Event,
-    asyncio.Condition,
-    aiobus.Bus["Request"],
+    concurrent.futures.Future["Request"] |
+    asyncio.Future["Request"] |
+    asyncio.Queue["Request"] |
+    queue.Queue["Request"] |
+    threading.Event |
+    threading.Condition |
+    asyncio.Event |
+    asyncio.Condition |
+    aiobus.Bus["Request"] |
 
     # Generators (but not simple iterators/iterables) get the requests from their `yield`.
     # The yield is interpreted as if it were an effect, or ignored if not recognized.
-    Generator[Union["Sink", Any], Union["Request", None], Union["Sink", None]],
-    AsyncGenerator[Union["Sink", Any], Union["Request", None]],
+    Generator["Sink | Any", "Request | None", "Sink | None"] |
+    AsyncGenerator["Sink | Any", "Request | None"] |
 
     # Lazily evaluated content is unfolded at request handled time.
     # The result is interpreted as it it were an effect, or ignored if not recognized.
-    Awaitable[Union["Sink", Any]],  # coros, tasks, futures (awaited before rendering)
-    Callable[[], Union["Sink", Any]],  # lambdas, partials, sync & async callbacks
-    Callable[["Request"], Union["Sink", Any]],  # lambdas, partials, sync & async callbacks
+    Awaitable["Sink | Any"] |  # coros, tasks, futures (awaited before rendering)
+    Callable[[], "Sink | Any"] |  # lambdas, partials, sync & async callbacks
+    Callable[["Request"], "Sink | Any"] |  # lambdas, partials, sync & async callbacks
 
     # An internal trick to keep side effects inbetween content sequence, but ignore their results:
-    "SinkBox",
-]
+    "SinkBox"
+)
 
 # The same as unions above, but for runtime quick-checking:
 SUPPORTED_SINKS: tuple[type[Any], ...] = (
