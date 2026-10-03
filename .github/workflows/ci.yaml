@@ -19,9 +19,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-      - run: uv sync --group lint
-      - run: uv run pre-commit run --all-files
-      - run: uv run mypy
+      - run: uv sync --no-dev --group lint
+      - run: uv run --no-sync pre-commit run --all-files
+      - run: uv run --no-sync mypy
 
   unit-tests:
     strategy:
@@ -38,8 +38,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - run: uv sync --group test
-      - run: uv run coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
+      - run: uv sync --no-dev --group test
+      - run: uv run --no-sync coverage run --branch --source=kmock -m pytest --color=yes --timeout=2
 
       - name: Publish coverage to Coveralls.io
         uses: coverallsapp/github-action@v2
@@ -76,8 +76,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - run: uv sync --group test
-      - run: uv run pytest --color=yes --timeout=2
+      - run: uv sync --no-dev --group test
+      - run: uv run --no-sync pytest --color=yes --timeout=2
 
   e2e-tests:
     name: E2E with K3s
@@ -94,8 +94,8 @@ jobs:
           version: latest
           github-token: ${{ secrets.GITHUB_TOKEN }}
           k3s-args: --disable=metrics-server@server:*
-      - run: uv sync --extra fetch --group test
-      - run: uv run pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
+      - run: uv sync --no-dev --extra fetch --group test
+      - run: uv run --no-sync pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
 
   coveralls-finish:
     name: Finalize coveralls.io
