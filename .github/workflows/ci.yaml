@@ -101,11 +101,28 @@ jobs:
           github-token: ${{ github.token }}
           k3s-args: --disable=metrics-server@server:*
       - run: uv sync --no-dev --group test --extra fetch
-      - run: pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
+      - run: coverage run --branch --source=kmock -m pytest tests/k8s-preloading/test_cli_fetching_e2e.py --color=yes --timeout=30
+
+      - name: Publish coverage to Coveralls.io
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel: true
+          flag-name: ${{ matrix.python-version }}
+        if: success()
+        continue-on-error: true  # tends to fail with no code changes (e.g. only CI/docs)
+      - name: Publish coverage to CodeCov.io
+        uses: codecov/codecov-action@v7
+        if: success()
+        env:
+          PYTHON: ${{ matrix.python-version }}
+        with:
+          flags: e2e
+          env_vars: PYTHON
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   coveralls-finish:
     name: Finalize coveralls.io
-    needs: [unit-tests, pypy-tests]
+    needs: [unit-tests, pypy-tests, e2e-tests]
     runs-on: ubuntu-26.04
     steps:
       - name: Finish coverage at Coveralls.io
