@@ -9,11 +9,10 @@ import re
 import threading
 from collections.abc import Callable, Mapping
 from types import EllipsisType
-from typing import Any, Protocol, TypeAlias, TypeVar, Union, runtime_checkable
+from typing import Any, Protocol, Self, TypeAlias, TypeVar, runtime_checkable
 
 import aiohttp.web
 import attrs
-from typing_extensions import Self
 
 from kmock._internal import boxes, enums, parsing, references, rendering
 
@@ -215,10 +214,8 @@ class Criteria:
             case _:
                 return bool(pat == val)
 
-    # TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-    #   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
     @staticmethod
-    def guess(arg: Union["Criteria", Criterion, CriterionBox], /) -> Union["Criteria", None]:
+    def guess(arg: "Criteria | Criterion | CriterionBox", /) -> "Criteria | None":
         match arg:
             case None:
                 return None

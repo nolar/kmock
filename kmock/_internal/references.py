@@ -1,6 +1,6 @@
 import re
 from collections.abc import Iterable
-from typing import Any, Protocol, Union, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import attrs
 
@@ -41,11 +41,9 @@ class resource(Selectable):
     version: str | None = None
     plural: str | None = None
 
-    # TODO: Rewrite Union[X,Y] to X|Y when Python 3.10 is dropped (≈October 2026).
-    #   Fails on Unions + ForwardRefs: https://github.com/python/cpython/issues/90015
     def __init__(
             self,
-            arg1: str | Union[Selectable, "resource"] | None = None,
+            arg1: "str | Selectable | resource | None" = None,
             arg2: str | None = None,
             arg3: str | None = None,
             /, *,

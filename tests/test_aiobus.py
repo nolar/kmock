@@ -152,7 +152,6 @@ async def test_bus_flushing_explicitly() -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_streaming_entirely(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     with pytest.raises(asyncio.TimeoutError):
@@ -169,7 +168,6 @@ async def test_bus_streaming_entirely(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_streaming_till_limit(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     async with asyncio.timeout(1):
@@ -185,7 +183,6 @@ async def test_bus_streaming_till_limit(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_streaming_exceptions(looptime: int) -> None:
     # NB: different mark variables to prevent weakref gc in CPython and behave as PyPy does.
     bus: Bus[Any] = Bus()
@@ -206,7 +203,6 @@ async def test_bus_streaming_exceptions(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_streaming_blocks(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     with pytest.raises(asyncio.TimeoutError):
@@ -218,7 +214,6 @@ async def test_bus_streaming_blocks(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_getting_blocks(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     with pytest.raises(asyncio.TimeoutError):
@@ -229,7 +224,6 @@ async def test_bus_getting_blocks(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_getting_from_marker(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     mark = await bus.mark()
@@ -243,7 +237,6 @@ async def test_bus_getting_from_marker(looptime: int) -> None:
 
 
 @pytest.mark.looptime
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="asyncio.timeout() is available since 3.11+")
 async def test_bus_getting_from_now(looptime: int) -> None:
     bus: Bus[Any] = Bus()
     await bus.put('ignored')

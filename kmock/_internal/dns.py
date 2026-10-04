@@ -2,11 +2,10 @@ import collections.abc
 import re
 from collections.abc import Collection
 from types import TracebackType
-from typing import Any, AsyncContextManager, Protocol, TypedDict, cast
+from typing import Any, AsyncContextManager, Protocol, Self, TypedDict, cast
 
 import aiohttp.connector
 import attrs
-from typing_extensions import Self
 
 
 class ResolvedHost(TypedDict):

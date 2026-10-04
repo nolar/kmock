@@ -13,8 +13,8 @@ But for uniformity, we still generate the shortcut containers first.
 import collections.abc
 import re
 import urllib.parse
-from collections.abc import Mapping
-from typing import Any, Generic, Iterator, TypeVar, overload
+from collections.abc import Iterator, Mapping
+from typing import Any, Generic, TypeVar, overload
 
 import attrs
 from typing_extensions import override

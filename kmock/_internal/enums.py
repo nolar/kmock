@@ -1,7 +1,5 @@
 import enum
-from typing import overload
-
-from typing_extensions import Self
+from typing import Self, overload
 
 _unknown_methods: dict[str, "method"] = {}
 

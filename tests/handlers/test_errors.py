@@ -123,16 +123,6 @@ async def test_request_errors_escalate_alone() -> None:
     assert isinstance(exc.value, ZeroDivisionError)
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="ExceptionGroup is only supported in 3.11+")
-async def test_request_errors_escalate_as_one_of_many() -> None:
-    with pytest.raises(Exception) as exc:
-        async with FailingHandler(strict=True) as kmock, Server(kmock):
-            await kmock.get('/')
-            await kmock.get('/')
-    assert isinstance(exc.value, ZeroDivisionError)
-
-
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="ExceptionGroup is only supported in 3.11+")
 async def test_request_errors_escalate_in_groups() -> None:
     with pytest.raises(Exception) as exc:
         async with FailingHandler(strict=True) as kmock, Server(kmock):
@@ -173,7 +163,6 @@ async def test_escalated_errors_have_higher_priority_than_accumulated_errors() -
             raise RuntimeError('simulated code error')
 
 
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="ExceptionGroup is only supported in 3.11+")
 async def test_escalated_groups_have_higher_priority_than_accumulated_errors() -> None:
     # NB: the escalated error is NEVER accumulated as it does not come from a handler.
     with pytest.raises(ExceptionGroup) as exc:

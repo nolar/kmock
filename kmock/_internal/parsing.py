@@ -1,9 +1,8 @@
 import urllib.parse
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Self
 
 import attrs
-from typing_extensions import Self
 
 from kmock._internal import enums, references
 

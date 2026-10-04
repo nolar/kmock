@@ -5,14 +5,13 @@ import traceback
 from collections.abc import AsyncIterator, Awaitable, Callable
 from importlib.metadata import version
 from types import TracebackType
-from typing import Any, AsyncContextManager, Protocol
+from typing import Any, AsyncContextManager, Protocol, Self
 
 import aiohttp.client
 import aiohttp.test_utils
 import aiohttp.web
 import attrs
 import yarl
-from typing_extensions import Self
 
 from kmock._internal import boxes, dns, dsl, enums, filtering, references, rendering
 
@@ -264,7 +263,7 @@ class RawHandler(dsl.Root):
         # If nested levels raise errors or error groups from requests, they are never combined.
         # Want combined error groups? Then avoid nested context managers, use the top-level one.
         if self.strict and exc_value is None and errors:
-            if sys.version_info >= (3, 11) and len(errors) > 1:
+            if len(errors) > 1:
                 raise ExceptionGroup("Several exceptions happened.", tuple(errors))
             else:
                 raise errors[0]
