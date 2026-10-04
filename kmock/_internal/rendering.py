@@ -11,7 +11,7 @@ import warnings
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, \
                             Generator, Iterable, Mapping, MutableSequence, MutableSet, Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, Self, TypeAlias, cast, final
+from typing import Any, Self, TypeAlias, Union, cast, final
 
 import aiohttp.web
 import attrs
@@ -21,7 +21,11 @@ from kmock._internal import aiobus, boxes, enums, parsing, references
 
 # Multi-type content for responses, with a heuristic to serve each type differently.
 # Each item can be the whole response or a step of a streaming response.
-Payload: TypeAlias = (
+# NB: split types — due to a bug in Python 3.11-3.13, where it cannot join X|"Y" in 50/50 cases.
+# Example: ``xyz: TypeAlias = bytes | "Request"`` -> fails at runtime, works as type checking.
+# But: the Sink type below works fine despite the same X|"Y" syntax.
+# TODO: join the types back when Python 3.13 is dropped (≈Oct'2029) and remove this comment.
+__Payload: TypeAlias = (
     None |
 
     # Raw binary payload get into the response bodies or streams unmodified:
@@ -54,14 +58,17 @@ Payload: TypeAlias = (
 
     # Exceptions are re-raised in place (some have special meaning):
     type[BaseException] |
-    BaseException |
+    BaseException
+)
+Payload: TypeAlias = Union[
+    __Payload,
 
     # Pre-interpreted or explicitly classified metadata to override the declared one:
-    "Response" |
+    "Response",
 
     # An internal trick to keep side effects inbetween content sequence, but ignore their results:
-    "SinkBox"
-)
+    "SinkBox",
+]
 
 # Boxes can be fed into ``<<``, but never get into the payload directly (thus a separate type).
 PayloadBox: TypeAlias = (
