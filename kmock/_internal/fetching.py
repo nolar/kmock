@@ -125,6 +125,8 @@ def _api_scan() -> list[Doc]:
 
 
 def _api_get(api_client: Any, path: str) -> Any:
-    response = api_client.call_api(path, 'GET', _preload_content=False)
-    data: bytes = response.data
+    from kubernetes.client.rest import RESTResponse
+    url = path if '://' in path else api_client.configuration.host + path
+    rest_response: RESTResponse = api_client.call_api('GET', url)
+    data: bytes = rest_response.read()
     return json.loads(data)
